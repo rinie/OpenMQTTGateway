@@ -1,17 +1,17 @@
-/*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+/*
+  OpenMQTTGateway  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker
    Send and receiving command by MQTT
- 
+
   This gateway enables to:
  - receive MQTT data from a topic and send RF 433Mhz signal corresponding to the received MQTT data
  - publish MQTT data to a different topic related to received 433Mhz signal
 
     Copyright: (c)Florian ROBERT
-  
+
     This file is part of OpenMQTTGateway.
-    
+
     OpenMQTTGateway is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -138,6 +138,9 @@ void RFtoMQTT() {
 #  ifdef ZradioCC1101 // set Receive off and Transmitt on
     RFdata["frequency"] = RFConfig.frequency;
 #  endif
+#ifdef RADIOLIBSX127X // first try transmit...
+    RFdata["frequency"] = RFConfig.frequency;
+#endif
     mySwitch.resetAvailable();
 
     if (!isAduplicateSignal(MQTTvalue) && MQTTvalue != 0) { // conditions to avoid duplications of RF -->MQTT
@@ -166,6 +169,11 @@ void MQTTtoRF(char* topicOri, char* datacallback) {
   ELECHOUSE_cc1101.SetTx(RFConfig.frequency);
   Log.notice(F("Transmit frequency: %F" CR), RFConfig.frequency);
 #    endif
+#ifdef RADIOLIBSX127X // first try transmit...
+  disableCurrentReceiver();
+  enableRTLtransmitter();
+  Log.notice(F("Transmit ZradioSX127x: %F" CR), RFConfig.frequency);
+#endif
   mySwitch.disableReceive();
   mySwitch.enableTransmit(RF_EMITTER_GPIO);
   SIGNAL_SIZE_UL_ULL data = STRTO_UL_ULL(datacallback, NULL, 10); // we will not be able to pass values > 4294967295 on Arduino boards
@@ -215,6 +223,9 @@ void MQTTtoRF(char* topicOri, char* datacallback) {
     // Acknowledgement to the GTWRF topic
     pub(subjectGTWRFtoMQTT, datacallback); // we acknowledge the sending by publishing the value to an acknowledgement topic, for the moment even if it is a signal repetition we acknowledge also
   }
+#ifdef RADIOLIBSX127X // first try transmit...
+enableRFReceive();
+#endif
 #    ifdef ZradioCC1101 // set Receive on and Transmitt off
   ELECHOUSE_cc1101.SetRx(RFConfig.frequency);
   mySwitch.disableTransmit();
@@ -246,6 +257,11 @@ void MQTTtoRF(char* topicOri, JsonObject& RFdata) { // json object decoding
       ELECHOUSE_cc1101.SetTx(txFrequency);
       Log.notice(F("Transmit frequency: %F" CR), txFrequency);
 #    endif
+#ifdef RADIOLIBSX127X // first try transmit...
+  disableCurrentReceiver();
+  enableRTLtransmitter();
+  Log.notice(F("json Transmit ZradioSX127x: %F" CR), RFConfig.frequency);
+#endif
       mySwitch.enableTransmit(RF_EMITTER_GPIO);
       mySwitch.setRepeatTransmit(valueRPT);
       mySwitch.setProtocol(valuePRT, valuePLSL);
@@ -265,15 +281,25 @@ int receiveInterupt = -1;
 
 void disableRFReceive() {
   Log.trace(F("disableRFReceive %d" CR), receiveInterupt);
+#ifdef RADIOLIBSX127X // first try transmit...
+	disableRTLreceive();
+#endif
   mySwitch.disableReceive();
 }
+#ifdef RADIOLIBSX127X // first try transmit...
+int rfDecodePulseGapDuration(const unsigned int duration) {
+	return mySwitch.decodePulseGapDuration(duration);
+}
+#endif;
 
 void enableRFReceive() {
   Log.notice(F("Enable RF Receiver: %FMhz" CR), RFConfig.frequency);
   //RF init parameters
   Log.notice(F("RF_EMITTER_GPIO: %d " CR), RF_EMITTER_GPIO);
   Log.notice(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
-
+#ifdef RADIOLIBSX127X // first try transmit...
+	enableRTLreceivePg(rfDecodePulseGapDuration);
+#endif
 #  ifdef RF_DISABLE_TRANSMIT
   mySwitch.disableTransmit();
 #  else

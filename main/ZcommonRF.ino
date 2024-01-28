@@ -1,13 +1,13 @@
-/*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+/*
+  OpenMQTTGateway  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your BLE/433mhz/infrared IR signal and an MQTT broker 
+   Act as a wifi or ethernet gateway between your BLE/433mhz/infrared IR signal and an MQTT broker
    Send and receiving command by MQTT
-  
+
     Copyright: (c)Florian ROBERT
-  
+
     This file is part of OpenMQTTGateway.
-    
+
     OpenMQTTGateway is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -173,7 +173,7 @@ String stateRFMeasures() {
   StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
   JsonObject RFdata = jsonBuffer.to<JsonObject>();
   RFdata["active"] = RFConfig.activeReceiver;
-#    if defined(ZradioCC1101) || defined(ZradioSX127x)
+#    if defined(ZradioCC1101) || defined(RADIOLIBSX127X)
   RFdata["frequency"] = RFConfig.frequency;
   if (RFConfig.activeReceiver == ACTIVE_RTL) {
 #      ifdef ZgatewayRTL_433

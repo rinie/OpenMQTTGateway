@@ -1,15 +1,15 @@
-/*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+/*
+  OpenMQTTGateway  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker
    Send and receiving command by MQTT
- 
+
    This files enables to set your parameter for the radiofrequency gateways (ZgatewayRF and ZgatewayRF2) with RCswitch and newremoteswitch library
-  
+
     Copyright: (c)Florian ROBERT
-  
+
     This file is part of OpenMQTTGateway.
-    
+
     OpenMQTTGateway is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -59,6 +59,9 @@ rtl_433_ESP rtl_433;
 extern void RTL_433Loop();
 extern void setupRTL_433();
 extern void enableRTLreceive();
+#ifdef RADIOLIBSX127X
+extern void enableRTLreceivePg(decodePulseGapDurationCallback pgdc);
+#endif
 extern void disableRTLreceive();
 extern int getRTLrssiThreshold();
 extern int getRTLCurrentRSSI();

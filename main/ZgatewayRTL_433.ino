@@ -286,10 +286,25 @@ extern void enableRTLreceive() {
   rtl_433.enableReceiver();
 }
 
+#ifdef RADIOLIBSX127X
+extern void enableRTLreceivePg(decodePulseGapDurationCallback pgdc) {
+  Log.notice(F("Enable RTL_433 Receiver: %FMhz" CR), RFConfig.frequency);
+  rtl_433.initReceiver(RF_MODULE_RECEIVER_GPIO, RFConfig.frequency);
+  rtl_433.enableReceiverPg(pgdc);
+}
+#endif
+
 extern void disableRTLreceive() {
   Log.trace(F("disableRTLreceive" CR));
   rtl_433.disableReceiver();
 }
+
+#ifdef RADIOLIBSX127X
+extern void enableRTLtransmitter() {
+  Log.notice(F("Enable RTL_433 Transmit: %FMhz" CR), RFConfig.frequency);
+  rtl_433.enableTransmitter();
+}
+#endif
 
 extern int getRTLrssiThreshold() {
   return rtl_433.rssiThreshold;
