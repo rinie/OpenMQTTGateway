@@ -1,17 +1,17 @@
-/*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+/*
+  OpenMQTTGateway  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker
    Send and receiving command by MQTT
- 
+
   This gateway enables to:
  - publish MQTT data to a different topic related to received 433Mhz signal DIO/new kaku protocol
 
     Copyright: (c)Florian ROBERT
     Copyright: (c)Randy Simons http://randysimons.nl/
-  
+
     This file is part of OpenMQTTGateway.
-    
+
     OpenMQTTGateway is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -121,8 +121,11 @@ void RF2toMQTT() {
     handleJsonEnqueue(RF2data);
   }
 }
-
+#ifdef RADIOLIBSX127X
+void rf2Callback(unsigned int period, unsigned long address, unsigned long groupBit, unsigned long unit, unsigned long switchType, boolean dimLevelPresent, byte dimLevel) {
+#else
 void rf2Callback(unsigned int period, unsigned long address, unsigned long groupBit, unsigned long unit, unsigned long switchType) {
+#endif
   rf2rd.period = period;
   rf2rd.address = address;
   rf2rd.groupBit = groupBit;
@@ -134,9 +137,8 @@ void rf2Callback(unsigned int period, unsigned long address, unsigned long group
 #  if simpleReceiving
 void MQTTtoRF2(char* topicOri, char* datacallback) {
   NewRemoteReceiver::disable();
-  pinMode(RF_EMITTER_GPIO, OUTPUT);
+  hwPinMode(RF_EMITTER_GPIO, OUTPUT);
   initCC1101();
-
   // RF DATA ANALYSIS
   //We look into the subject to see if a special RF protocol is defined
   String topic = topicOri;
@@ -249,7 +251,7 @@ void MQTTtoRF2(char* topicOri, JsonObject& RF2data) { // json object decoding
     bool success = false;
     if (boolSWITCHTYPE != 99) {
       NewRemoteReceiver::disable();
-      pinMode(RF_EMITTER_GPIO, OUTPUT);
+      hwPinMode(RF_EMITTER_GPIO, OUTPUT);
       initCC1101();
       Log.trace(F("MQTTtoRF2 switch type ok" CR));
       bool isDimCommand = boolSWITCHTYPE == 2;
@@ -304,8 +306,17 @@ void MQTTtoRF2(char* topicOri, JsonObject& RF2data) { // json object decoding
 
 void disableRF2Receive() {
   Log.trace(F("disableRF2Receive" CR));
+#ifdef RADIOLIBSX127X
+	disableRTLreceive();
+#endif
   NewRemoteReceiver::disable();
 }
+
+#ifdef RADIOLIBSX127X
+int rf2DecodePulseGapDuration(const unsigned int duration) {
+	return NewRemoteReceiver::decodePulseGapDuration(duration);
+}
+#endif;
 
 void enableRF2Receive() {
   Log.trace(F("enableRF2Receive" CR));
@@ -314,8 +325,12 @@ void enableRF2Receive() {
   Log.notice(F("RF_EMITTER_GPIO: %d " CR), RF_EMITTER_GPIO);
   Log.notice(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
   Log.trace(F("ZgatewayRF2 command topic: %s%s%s" CR), mqtt_topic, gateway_name, subjectMQTTtoRF2);
-  pinMode(RF_EMITTER_GPIO, OUTPUT);
-  digitalWrite(RF_EMITTER_GPIO, LOW);
+  hwPinMode(RF_EMITTER_GPIO, OUTPUT);
+  hwDigitalWrite(RF_EMITTER_GPIO, LOW);
+#ifdef RADIOLIBSX127X
+  Log.notice(F("Switching to RF2 RTL_433: %F" CR), RFConfig.frequency);
+  enableRTLreceivePg(rf2DecodePulseGapDuration);
+#endif
   Log.trace(F("ZgatewayRF2 setup done " CR));
 }
 
