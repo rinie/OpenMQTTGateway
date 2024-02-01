@@ -138,7 +138,7 @@ void RFtoMQTT() {
 #  ifdef ZradioCC1101 // set Receive off and Transmitt on
     RFdata["frequency"] = RFConfig.frequency;
 #  endif
-#ifdef RADIOLIBSX127X // first try transmit...
+#ifdef RADIOLIBSX127X
     RFdata["frequency"] = RFConfig.frequency;
 #endif
     mySwitch.resetAvailable();
@@ -169,7 +169,7 @@ void MQTTtoRF(char* topicOri, char* datacallback) {
   ELECHOUSE_cc1101.SetTx(RFConfig.frequency);
   Log.notice(F("Transmit frequency: %F" CR), RFConfig.frequency);
 #    endif
-#ifdef RADIOLIBSX127X // first try transmit...
+#ifdef RADIOLIBSX127X
   disableCurrentReceiver();
   enableRTLtransmitter();
   Log.notice(F("Transmit ZradioSX127x: %F" CR), RFConfig.frequency);
@@ -223,7 +223,7 @@ void MQTTtoRF(char* topicOri, char* datacallback) {
     // Acknowledgement to the GTWRF topic
     pub(subjectGTWRFtoMQTT, datacallback); // we acknowledge the sending by publishing the value to an acknowledgement topic, for the moment even if it is a signal repetition we acknowledge also
   }
-#ifdef RADIOLIBSX127X // first try transmit...
+#ifdef RADIOLIBSX127X
 enableRFReceive();
 #endif
 #    ifdef ZradioCC1101 // set Receive on and Transmitt off
@@ -257,7 +257,7 @@ void MQTTtoRF(char* topicOri, JsonObject& RFdata) { // json object decoding
       ELECHOUSE_cc1101.SetTx(txFrequency);
       Log.notice(F("Transmit frequency: %F" CR), txFrequency);
 #    endif
-#ifdef RADIOLIBSX127X // first try transmit...
+#ifdef RADIOLIBSX127X
   disableCurrentReceiver();
   enableRTLtransmitter();
   Log.notice(F("json Transmit ZradioSX127x: %F" CR), RFConfig.frequency);
@@ -281,12 +281,12 @@ int receiveInterupt = -1;
 
 void disableRFReceive() {
   Log.trace(F("disableRFReceive %d" CR), receiveInterupt);
-#ifdef RADIOLIBSX127X // first try transmit...
+#ifdef RADIOLIBSX127X
 	disableRTLreceive();
 #endif
   mySwitch.disableReceive();
 }
-#ifdef RADIOLIBSX127X // first try transmit...
+#ifdef RADIOLIBSX127X
 int rfDecodePulseGapDuration(const unsigned int duration) {
 	return mySwitch.decodePulseGapDuration(duration);
 }
@@ -297,7 +297,7 @@ void enableRFReceive() {
   //RF init parameters
   Log.notice(F("RF_EMITTER_GPIO: %d " CR), RF_EMITTER_GPIO);
   Log.notice(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
-#ifdef RADIOLIBSX127X // first try transmit...
+#ifdef RADIOLIBSX127X
 	enableRTLreceivePg(rfDecodePulseGapDuration);
 #endif
 #  ifdef RF_DISABLE_TRANSMIT

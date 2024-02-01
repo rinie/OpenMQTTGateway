@@ -34,11 +34,7 @@
 #  endif
 
 #  include <ESPiLight.h>
-#ifdef RADIOLIBSX127X
-ESPiLight rf(-1); // use -1 to disable transmitter
-#else
 ESPiLight rf(RF_EMITTER_GPIO); // use -1 to disable transmitter
-#endif
 #  ifdef Pilight_rawEnabled
 // raw output support
 bool pilightRawEnabled = 0;
@@ -214,7 +210,7 @@ void MQTTtoPilight(char* topicOri, JsonObject& Pilightdata) {
 #  ifdef RADIOLIBSX127X
     enableRTLtransmitter();
 #  else
-    pinMode(RF_EMITTER_GPIO, OUTPUT);
+    hwPinMode(RF_EMITTER_GPIO, OUTPUT);
   #endif
     if (raw) {
       uint16_t codes[MAXPULSESTREAMLENGTH];
@@ -291,9 +287,18 @@ void MQTTtoPilight(char* topicOri, JsonObject& Pilightdata) {
 
 extern void disablePilightReceive() {
   Log.trace(F("disablePilightReceive" CR));
+#ifdef RADIOLIBSX127X
+	disableRTLreceive();
+#endif
   rf.initReceiver(-1);
   rf.disableReceiver();
 };
+
+#ifdef RADIOLIBSX127X
+int pilightDecodePulseGapDuration(const unsigned int duration) {
+	return rf.decodePulseGapDuration(duration);
+}
+#endif;
 
 extern void enablePilightReceive() {
   Log.notice(F("Switching to Pilight Receiver: %F" CR), RFConfig.frequency);
@@ -301,7 +306,6 @@ extern void enablePilightReceive() {
   Log.notice(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
   Log.trace(F("ZgatewayPilight command topic: %s%s%s" CR), mqtt_topic, gateway_name, subjectMQTTtoPilight);
 
-#ifndef RADIOLIBSX127X
 
   initCC1101();
 
@@ -312,8 +316,13 @@ extern void enablePilightReceive() {
   }
 #  endif
   rf.initReceiver(RF_RECEIVER_GPIO);
-  pinMode(RF_EMITTER_GPIO, OUTPUT); // Set this here, because if this is the RX pin it was reset to INPUT by Serial.end();
+  hwPinMode(RF_EMITTER_GPIO, OUTPUT); // Set this here, because if this is the RX pin it was reset to INPUT by Serial.end();
   rf.enableReceiver();
+#ifdef RADIOLIBSX127X
+  Log.notice(F("Switching to Pilight RTL_433: %F" CR), RFConfig.frequency);
+      rf.limitProtocols(rf.availableProtocols());
+      savePilightConfig();
+  enableRTLreceivePg(pilightDecodePulseGapDuration);
 #endif
   loadPilightConfig();
   Log.trace(F("ZgatewayPilight setup done " CR));
