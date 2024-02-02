@@ -1089,7 +1089,11 @@ std::map<int, String> activeReceiverOptions = {
     {3, "RTL_433"},
 #    endif
 #    if defined(ZgatewayRF2) /* && !defined(ZradioSX127x) */
+#ifdef RADIOLIBSX127X
+    {4, "RF2 (on RTL_433)"}
+#else
     {4, "RF2 (restart required)"}
+#endif
 #    endif
 };
 
