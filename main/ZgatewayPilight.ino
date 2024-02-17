@@ -33,7 +33,7 @@
 #    include <ELECHOUSE_CC1101_SRC_DRV.h>
 #  endif
 #  ifdef RADIOLIBSX127X
-#define RF_EMITTER_GPIO 27
+#define RF_EMITTER_GPIO 32
 #endif
 #  include <ESPiLight.h>
 ESPiLight rf(RF_EMITTER_GPIO); // use -1 to disable transmitter
