@@ -286,7 +286,7 @@ extern void enableRTLreceive() {
   rtl_433.enableReceiver();
 }
 
-#ifdef RADIOLIBSX127X
+#ifdef RADIOLIBSX127X && (defined(ZgatewayRF) || defined(ZgatewayPilight) || defined(ZgatewayRF2))
 extern void enableRTLreceivePg(decodePulseGapDurationCallback pgdc) {
   Log.notice(F("Enable RTL_433 Receiver: %FMhz" CR), RFConfig.frequency);
   rtl_433.initReceiver(RF_MODULE_RECEIVER_GPIO, RFConfig.frequency);

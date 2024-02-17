@@ -293,11 +293,13 @@ int rfDecodePulseGapDuration(const unsigned int duration) {
 #endif;
 
 void enableRFReceive() {
+#ifdef RADIOLIBSX127X
   Log.notice(F("Enable RF Receiver: %FMhz" CR), RFConfig.frequency);
   //RF init parameters
   Log.notice(F("RF_EMITTER_GPIO: %d " CR), RF_EMITTER_GPIO);
   Log.notice(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
-#ifdef RADIOLIBSX127X
+#else
+  Log.notice(F("Enable RF Receiver RTL_433: %F" CR), RFConfig.frequency);
 	enableRTLreceivePg(rfDecodePulseGapDuration);
 #endif
 #  ifdef RF_DISABLE_TRANSMIT

@@ -59,7 +59,7 @@ rtl_433_ESP rtl_433;
 extern void RTL_433Loop();
 extern void setupRTL_433();
 extern void enableRTLreceive();
-#ifdef RADIOLIBSX127X
+#ifdef RADIOLIBSX127X && (defined(ZgatewayRF) || defined(ZgatewayPilight) || defined(ZgatewayRF2))
 extern void enableRTLreceivePg(decodePulseGapDurationCallback pgdc);
 #endif
 extern void disableRTLreceive();

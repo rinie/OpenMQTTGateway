@@ -322,8 +322,10 @@ void enableRF2Receive() {
   Log.trace(F("enableRF2Receive" CR));
   NewRemoteReceiver::init(RF_RECEIVER_GPIO, 2, rf2Callback);
 
+#ifndef RADIOLIBSX127X
   Log.notice(F("RF_EMITTER_GPIO: %d " CR), RF_EMITTER_GPIO);
   Log.notice(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
+#endif
   Log.trace(F("ZgatewayRF2 command topic: %s%s%s" CR), mqtt_topic, gateway_name, subjectMQTTtoRF2);
   hwPinMode(RF_EMITTER_GPIO, OUTPUT);
   hwDigitalWrite(RF_EMITTER_GPIO, LOW);
@@ -333,5 +335,4 @@ void enableRF2Receive() {
 #endif
   Log.trace(F("ZgatewayRF2 setup done " CR));
 }
-
 #endif

@@ -304,8 +304,10 @@ int pilightDecodePulseGapDuration(const unsigned int duration) {
 
 extern void enablePilightReceive() {
   Log.notice(F("Switching to Pilight Receiver: %F" CR), RFConfig.frequency);
+#ifndef RADIOLIBSX127X
   Log.notice(F("RF_EMITTER_GPIO: %d " CR), RF_EMITTER_GPIO);
   Log.notice(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
+#endif
   Log.trace(F("ZgatewayPilight command topic: %s%s%s" CR), mqtt_topic, gateway_name, subjectMQTTtoPilight);
 
 
