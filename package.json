@@ -1,9 +1,21 @@
 {
   "scripts": {
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs"
+    "gen:ssl": "node scripts/ensure_ssl_certs.js",
+    "gen:metadata": "node docsgen/gen_wu.js",
+    "gen:commonconfig": "curl -sSf -o docs/.vitepress/public/commonConfig.js https://www.theengs.io/commonConfig.js",
+    "docs:dev": "npm run gen:commonconfig && npm run gen:metadata && vitepress dev docs",
+    "docs:build": "npm run gen:commonconfig && npm run gen:metadata && vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "site:preview": " npm run gen:ssl && node scripts/preview_site.js"
+  },
+  "dependencies": {
+    "ini": "^4.1.1",
+    "markdown-table": "^3.0.3",
+    "mime-types": "^2.1.35"
   },
   "devDependencies": {
-    "vuepress": "^1.9.10"
+    "medium-zoom": "^1.1.0",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.31"
   }
 }

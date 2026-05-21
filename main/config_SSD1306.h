@@ -1,7 +1,7 @@
 /*  
   OpenMQTTGateway Addon  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker
    Send and receiving command by MQTT
 
     Supported boards with displays
@@ -34,11 +34,7 @@
 #ifndef config_SSD1306_h
 #define config_SSD1306_h
 
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include <Wire.h>
-
-#include "SSD1306Wire.h"
+#include "TheengsCommon.h"
 #include "config_WebUI.h"
 
 /*-------------------DEFINE LOG LEVEL----------------------*/
@@ -105,17 +101,33 @@
 #define subjectMQTTtoSSD1306set "/commands/MQTTtoSSD1306/config"
 #define subjectSSD1306toMQTT    "/SSD1306toMQTT"
 
+/*-------------------Display Blanking via Touch----------------------*/
+
+#ifdef DISPLAY_BLANKING
+#  ifndef DISPLAY_BLANKING_TOUCH_GPIO
+#    define DISPLAY_BLANKING_TOUCH_GPIO 2 // GPIO pin for touch sensor
+#  endif
+#  ifndef DISPLAY_BLANKING_START
+#    define DISPLAY_BLANKING_START 30 // 30 seconds after last touch
+#  endif
+#  ifndef DISPLAY_BLANKING_THRESHOLD
+#    define DISPLAY_BLANKING_THRESHOLD 10
+#  endif
+#  define TOUCH_READINGS  100 // Number of readings to average
+#  define TOUCH_THRESHOLD 0.2 // 20% change in reading
+#endif
+
 /*-------------------EXTERNAL FUNCTIONS----------------------*/
 
 extern void setupSSD1306();
 extern void loopSSD1306();
-extern void MQTTtoSSD1306(char*, JsonObject&);
+extern void XtoSSD1306(const char*, JsonObject&);
 extern String stateSSD1306Display();
 
 // Simple construct for displaying message in lcd and oled displays
 
 #define displayPrint(...) \
-  if (lowpowermode < 2) ssd1306Print(__VA_ARGS__) // only print if not in low power mode
+  if (SYSConfig.powerMode < 1) ssd1306Print(__VA_ARGS__) // only print if not in low power mode
 #define lpDisplayPrint(...) ssd1306Print(__VA_ARGS__) // print in low power mode
 
 void ssd1306Print(char*, char*, char*);
@@ -123,54 +135,5 @@ void ssd1306Print(char*, char*);
 void ssd1306Print(char*);
 
 /*-------------------End of Global Variables----------------------*/
-
-// This pattern was borrowed from HardwareSerial and modified to support the ssd1306 display
-
-class OledSerial : public Stream {
-public:
-  OledSerial(int);
-  void begin();
-  void drawLogo(int xshift, int yshift);
-  boolean displayPage(webUIQueueMessage*);
-
-  SSD1306Wire* display;
-
-  int available(void); // Dummy functions
-  int peek(void); // Dummy functions
-  int read(void); // Dummy functions
-  void flush(void); // Dummy functions
-
-  void fillScreen(OLEDDISPLAY_COLOR); // fillScreen display and set color
-
-  // This is a bit of lazy programmer simplification for the semaphore and core detecting code.  Not sure if it is truly space efficient.
-
-  inline size_t write(uint8_t x) {
-    return write(&x, 1);
-  }
-
-  size_t write(const uint8_t* buffer, size_t size);
-  inline size_t write(const char* buffer, size_t size) {
-    return write((uint8_t*)buffer, size);
-  }
-  inline size_t write(const char* s) {
-    return write((uint8_t*)s, strlen(s));
-  }
-  inline size_t write(unsigned long n) {
-    return write((uint8_t)n);
-  }
-  inline size_t write(long n) {
-    return write((uint8_t)n);
-  }
-  inline size_t write(unsigned int n) {
-    return write((uint8_t)n);
-  }
-  inline size_t write(int n) {
-    return write((uint8_t)n);
-  }
-
-protected:
-};
-
-extern OledSerial Oled;
 
 #endif

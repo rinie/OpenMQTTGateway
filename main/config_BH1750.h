@@ -1,7 +1,7 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker 
    Send and receiving command by MQTT
  
    This files enables to set your parameter for the BH1750 sensor
@@ -26,13 +26,13 @@
    Connection Schemata:
    --------------------
 
-   BH1750 ------> Arduino Uno ----------> ESP8266
-   ==============================================
-   Vcc ---------> 5V -------------------> Vu (5V)
-   GND ---------> GND ------------------> GND
-   SCL ---------> Pin A5 ---------------> D1
-   SDA ---------> Pin A4 ---------------> D2
-   ADD ---------> N/C (Not Connected) --> N/C (Not Connected)
+   BH1750 ------> ESP8266
+   ==================================
+   Vcc --------->   (5V)
+   GND ---------> GND
+   SCL ---------> D1
+   SDA ---------> D2
+   ADD ---------> N/C (Not Connected)
 
 */
 #ifndef config_BH1750_h
@@ -47,8 +47,7 @@ extern void MeasureLightIntensity();
 /*----------------------------USER PARAMETERS-----------------------------*/
 /*-------------DEFINE YOUR MQTT PARAMETERS BELOW----------------*/
 #define subjectBH1750toMQTT "/BH1750toMQTT"
-//Time used to wait for an interval before resending measured values
-unsigned long timebh1750 = 0;
-int BH1750_i2c_addr = 0x23; // Light Sensor I2C Address
+
+#define BH1750_I2C_ADDR 0x23; // Light Sensor I2C Address
 
 #endif

@@ -1,7 +1,7 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker 
    Send and receiving command by MQTT
  
    This files enables to set your parameter for the radiofrequency gateway on sonoff rf bridge (ZgatewaySRFB)
@@ -27,10 +27,12 @@
 #ifndef config_SRFB_h
 #define config_SRFB_h
 
+#include "TheengsCommon.h"
+
 extern void setupSRFB();
-extern bool SRFBtoMQTT();
-extern void MQTTtoSRFB(char* topicOri, char* datacallback);
-extern void MQTTtoSRFB(char* topicOri, JsonObject& RFdata);
+extern bool SRFBtoX();
+extern void XtoSRFB(const char* topicOri, const char* datacallback);
+extern void XtoSRFB(const char* topicOri, JsonObject& RFdata);
 /*-------------------RF topics & parameters----------------------*/
 //433Mhz MQTT Subjects and keys
 #define subjectMQTTtoSRFB      "/commands/MQTTtoSRFB"

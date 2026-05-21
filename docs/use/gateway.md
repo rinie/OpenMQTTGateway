@@ -20,7 +20,8 @@ With Home Assistant, this command is directly available through MQTT auto discov
 `mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"cmd":"status"}'`
 
 ## Auto discovery
-You can deactivate the MQTT auto discovery function, this function enables to automatically create devices/entities with Home Assistant convention.
+You can deactivate the MQTT auto-discovery function, which enables you to create devices/entities with the Home Assistant convention automatically. This function is set to `true` at startup for 30 minutes unless you deactivate it.
+
 ### Deactivate
 `mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"disc":false}'`
 
@@ -31,20 +32,12 @@ If you want the settings to be kept upon gateway restart, you can save the state
 `mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"disc":false, "save":true}'`
 
 ::: tip
-Auto discovery is enable by default on release binaries, on platformio (except for UNO). With Arduino IDE please read the [advanced configuration section](../upload/advanced-configuration#auto-discovery) of the documentation.
+Auto discovery is enabled by default on release binaries and platformio.
 :::
 
-## AutoDiscovery compatible with OpenHAB (default: false)
-OpenHAB does not support the key `is_defined` in the json template, to remove it at runtime and make the auto discovery compatible you can use the following command with a retain flag.
+## Activate Offline mode
 
-`mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"ohdisc":true}'`
-
-If you want the settings to be kept upon gateway restart, you can save the state by adding `"save":true` (ESP32 only).
-`mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"ohdisc":true, "save":true}'`
-
-::: tip
-This command can also be used with other controllers that does not support the is_defined key.
-:::
+`mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"offline":true,"save":true}'`
 
 ## Change the WiFi credentials
 
@@ -68,30 +61,28 @@ mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m
   "mqtt_pass": "password",
   "mqtt_server": "host",
   "mqtt_port": "port",
-  "mqtt_secure": "false"
+  "mqtt_validate": false,
+  "mqtt_secure": false
 }'
 ```
+
 ::: tip INFO
 By default this function is not available on the pre built binary of RFBridge, in order to have less code size and enable to have OTA update working properly. So as to enable it remove from the rf bridge env:
 ```
 build_flags = '-UMQTTsetMQTT'
 ``` 
-Arduino boards does not have this function per default also, to add it:
-```
-build_flags = '-DMQTTsetMQTT'
-``` 
 :::
 
 ::: tip
-Server, port, and secure_flag are only required if changing connection to another broker.  
 If the new connection fails the gateway will fallback to the previous connection.
 :::
 
-## Change the MQTT main topic and or gateway name
+## Change the MQTT main topic, discovery prefix, and or gateway name
 ```
 mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m
 '{
   "mqtt_topic": "topic/",
+  "discovery_prefix": "prefix",
   "gateway_name": "name"
 }'
 ```
@@ -99,13 +90,13 @@ mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m
 This will change the subscribed and published mqtt_topic/gateway_name that the gateway uses. No parameters are mandatory, the current topic or gateway name will be used if not supplied.
 :::
 
-## Switching brokers and using self signed and client certificates
+## Switching brokers and using signed and client certificates
 
-In the `user_config.h` file it is possible to specify multiple MQTT brokers and client certificates. These are commonly self signed and are supported by defining `MQTT_SECURE_SELF_SIGNED` as true or 1.  
+In the `user_config.h` file it is possible to specify multiple MQTT brokers and client certificates.
 Additionally, support for multiple brokers and client certificates has been added. To use this, it is required that the server certificate, client certificate, and client key are provided as their own constant string value as demonstrated in the file.  
-To add more than one broker and switch between them it is necessary to provide all of the relevant certificates/keys and add their respective variable names in the `certs_array` structure, as shown in `user_config.h`, and changing the array size to the number of different connections -1.  
+To add more than one broker and switch between them it is necessary to provide all of the relevant certificates/keys and add their respective variable names in the `cnt_parameters_array` structure, as shown in `user_config.h`..  
 
-To switch between these servers with an MQTT command message, the format is as follows:
+To switch between these connections with an MQTT command message, the format is as follows:
 ```
 mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m
 '{
@@ -113,13 +104,92 @@ mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m
   "mqtt_pass": "password",
   "mqtt_server": "host",
   "mqtt_port": "port",
-  "mqtt_secure": "true",
-  "mqtt_cert_index":0
+  "mqtt_secure": true,
+  "mqtt_validate": true,
+  "cnt_index":1,
+  "save_cnt": true
  }'
  ```
 ::: tip
-The `mqtt_cert_index` value corresponds to the 0 to X index of the `certs_array` in `user_config.h`.
+The `cnt_index` value corresponds to the 0 to 2 index of the `cnt_parameters_array` in `user_config.h`.
+0 being the default index, containing the onboarding parameters.
 :::
+
+To read the connection parameters:
+```
+mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m
+'{
+  "cnt_index":1,
+  "read_cnt": true
+ }'
+ ```
+
+ To test a connection change without saving:
+ ```
+mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m
+'{
+  "cnt_index":1,
+  "test_cnt": true
+ }'
+ ```
+
+::: tip
+If the client can't connect to the MQTT broker corresponding to the current `cnt_index`, it will increment the index to the next valid connection set and restart with it.
+:::
+
+## Saving/Loading connection parameters/certificates at runtime
+This chapter details the process for managing certificates/connections parameters used for secure MQTT communication with OpenMQTTGateway
+
+### Storing and Loading Certificates
+* Flash Memory Storage:
+Certificates can be saved to the flash memory using specific indices. Valid indices for storing certificates are 1 and 2, as 0 is reserved for the default certificate.
+* RAM Memory Loading:
+Certificates can be loaded from RAM, where valid indices range from 0 to 2. The device publishes a hash of the certificate to the broker to verify its identity. If the connection using the current certificate fails, the device will revert to the previous certificate.
+
+### Use Case: Changing a Group of Certificates
+When updating certificates, follow these steps to ensure that the new certificates are correctly loaded and used:
+
+1. Push Certificates via MQTT:
+Send the new certificates one by one through MQTT, using indices 1 or 2. Replace newline characters (\n) in the certificates with spaces.
+```json
+{
+  "cnt_index": 1,
+  "mqtt_server_cert": "-----BEGIN CERTIFICATE----- MIIDQTCC----END CERTIFICATE-----"
+}
+```
+
+Accepted certificates are:
+* `mqtt_server_cert`
+* `mqtt_client_cert`
+* `mqtt_client_key`
+* `ota_server_cert`
+
+2. Verify Certificates in RAM:
+After pushing the certificates, verify that they have been correctly loaded into RAM.
+```json
+{
+  "cnt_index": 1,
+  "read_cnt": true
+}
+```
+
+3. Test and Save Certificates:
+Once verification is complete, test the connection using the new certificates. If the connection is successful, send the command to save the certificates to flash.
+```json
+{
+  "cnt_index": 1,
+  "save_cnt": true
+}
+```
+
+4. Broker Connection:
+The broker will attempt to use the newly received certificates for the connection.
+
+5. Successful Connection Handling:
+If the connection is successful, the certificates are permanently stored in the flash memory at the specified index.
+
+6. Handling Connection Failures:
+If the connection fails, the device will revert to the previously used certificate index, and the new certificates will not be saved.
 
 # Firmware update from MQTT (ESP only)
 
@@ -147,7 +217,7 @@ OpenMQTTGateway checks at start and every hour if an update is available.
 
 Alternatively if you want to choose the update URL you can use the command below (ESP32 and ESP8266):
 
-Without certificate, in this case we will use the root certificate defined in User_config.h
+Without certificate, in this case the gateway will use the ota_server_cert certificate defined in default_ota_cert.h
 ```
 mosquitto_pub -t "home/OpenMQTTGateway_ESP32_BLE/commands/MQTTtoSYS/firmware_update" -m '{
   "version": "test",
@@ -156,38 +226,28 @@ mosquitto_pub -t "home/OpenMQTTGateway_ESP32_BLE/commands/MQTTtoSYS/firmware_upd
 }'
 ```
 
-With certificate:
+With certificate (replace the \n in the certificate by spaces to publish it easily):
 ```
 mosquitto_pub -t "home/OpenMQTTGateway_ESP32_BLE/commands/MQTTtoSYS/firmware_update" -m '{
   "version": "test",
   "password": "OTAPASSWORD",
   "url": "https://github.com/1technophile/OpenMQTTGateway/releases/download/v0.9.12/esp32dev-ble-firmware.bin",
-  "server_cert": "-----BEGIN CERTIFICATE-----
-MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh
-MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
-d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD
-QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT
-MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
-b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB
-CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97
-nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt
-43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P
-T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4
-gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO
-BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR
-TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw
-DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr
-hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg
-06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF
-PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls
-YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk
-CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=
------END CERTIFICATE-----"}'
+  "ota_server_cert": "-----BEGIN CERTIFICATE----- MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4= -----END CERTIFICATE-----"}'
 ```
 
-A bash script is available [here](ota_command_cert.zip) to simplify the use of the `server_cert` parameter.  
+A bash script is available [here also](ota_command_cert.zip) to simplify the use of the `server_cert` parameter.  
 
+
+Alternatively the OTA certificate can also be saved with the cnt_index for future use:
+
+```
+mosquitto_pub -t "home/OpenMQTTGateway_ESP32_BLE/commands/MQTTtoSYS/config" -m '{
+  "cnt_index": 1,
+  "save_cnt":true,
+  "ota_server_cert": "-----BEGIN CERTIFICATE----- MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4= -----END CERTIFICATE-----"
+}'
+```
+The other connection parameters corresponding to the index need to be valid for the save function to work. This command will switch to connection parameters of index 1.
 
 To enable this functionality, `MQTT_HTTPS_FW_UPDATE` will need to be defined or the line that defines in in user_config.h will need to be uncommented.
 
@@ -201,23 +261,124 @@ The `server_cert` parameter is optional. If the update server has changed or cer
 The pre-built binaries for **rfbridge** and **avatto-bakeey-ir** have the above WiFi and MQTT broker credentials and the Firmware update via MQTT options disabled. This is due to the restricted available flash, so as to still be able to use OTA firmware updates for these boards.
 :::
 
+# Communication layers
+
+## MQTT
+OpenMQTTGateway uses per default MQTT on top of Ethernet or WiFi for communicating (default: true).
+The MQTT communication can be deactivated with the following command:
+`mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"mqtt":false}'`
+Once activated the MQTT API is no longer accessible
+
+## Serial
+Added to MQTT, OpenMQTTGateway cans use Serial to transmit or receive json data (default: false):
+`mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"serial":true}'`
+
+The build need to have the following macro:
+```
+  '-DZgatewaySERIAL="SERIAL"'
+```
+
+An example scenario is a slave offline ESP32 dedicated to RF decoding connected to another online ESP32 through Serial.
+
+# Indicators
+
 ## Change the LED indicator brightness
 
 Minimum: 0, Maximum: 255, Default defined by DEFAULT_ADJ_BRIGHTNESS
 
 `mosquitto_pub -t "home/OpenMQTTGateway/commands/MQTTtoSYS/config" -m '{"brightness":200}'`
 
-# State LED usage
+## Understanding LED Indicators in OpenMQTTGateway
+With boards having one or several RGB Led, OpenMQTTGateway uses them to provide visual feedback about its current state. This guide will help you interpret these LED signals to understand what's happening with your gateway.
 
-The gateway can support up to 3 LED to display its operating state:
-* LED_INFO 
-switched ON when network and MQTT connection are OK
-5s ON, 5s OFF when MQTT is disconnected
-2s ON, 2s OFF when NETWORK is disconnected
+## LED Color Guide
+OpenMQTTGateway uses a variety of colors to indicate different states:
 
-* LED_RECEIVE
-Blink for `TimeLedON` 1s when the gateway receive a signal from one of its module so as to send to MQTT
+Green (0x00FF00): Indicates normal operation or successful connections
+Blue (0x0000FF): Shows processing or offline status
+Orange (0xFFA500): Indicates waiting states or minor issues
+Yellow (0xFFFF00): Used during the onboarding process
+Red (0xFF0000): Signals an error state
+Magenta (0xFF00FF): Indicates local Over-The-Air (OTA) updates
+Purple (0x8000FF): Shows remote OTA updates are in progress
 
-* LED_SEND
-Blink for `TimeLedON` 1s when the gateway send a signal with one of its module from an MQTT command
+## Understanding Gateway States
+Here's what different LED behaviors mean:
 
+### Power On
+
+Color: Green
+Behavior: Solid light
+Meaning: The gateway is powered and operational
+
+### Processing
+
+Color: Blue
+Behavior: Blinking (3 times)
+Meaning: The gateway is processing data
+
+### Waiting for Onboarding
+
+Color: Orange
+Behavior: Solid light
+Meaning: The gateway is ready to be set up
+
+### Onboarding in Progress
+
+Color: Yellow
+Behavior: Solid light
+Meaning: The gateway is being configured
+
+### Network Connected
+
+Color: Green
+Behavior: Solid light
+Meaning: Successfully connected to the network
+
+### Network Disconnected
+
+Color: Orange
+Behavior: Blinking
+Meaning: Lost connection to the network
+
+### MQTT Broker Connected
+
+Color: Green
+Behavior: Solid light
+Meaning: Successfully connected to the MQTT broker
+
+### MQTT Broker Disconnected
+
+Color: Orange
+Behavior: Blinking
+Meaning: Lost connection to the MQTT broker
+
+### Offline
+
+Color: Blue
+Behavior: Blinking
+Meaning: The gateway is offline
+
+### Local OTA Update
+
+Color: Magenta
+Behavior: Blinking
+Meaning: A local Over-The-Air update is in progress
+
+### Remote OTA Update
+
+Color: Purple
+Behavior: Blinking
+Meaning: A remote Over-The-Air update is in progress
+
+### Error
+
+Color: Red
+Behavior: Blinking (3 times)
+Meaning: An error has occurred
+
+### Actuator On/Off
+
+Color: Green
+Behavior: Depends on actuator state
+Meaning: Indicates the state of a connected actuator

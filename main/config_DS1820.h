@@ -1,5 +1,5 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
    Act as a wifi or ethernet gateway between your RF/infrared IR signal  and a MQTT broker
    Send and receiving command by MQTT
@@ -27,7 +27,7 @@
 #define config_DS1820_h
 
 extern void setupZsensorDS1820();
-extern void DS1820toMQTT();
+extern void DS1820toX();
 extern void MeasureDS1820Temp();
 extern void pubOneWire_HADiscovery();
 

@@ -97,11 +97,7 @@ mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoIR -m '{"value":551489775,"
 
 ## Send raw IR data by MQTT
 
-2) If you use an Arduino UNO enable `IR_Raw` by uncommenting the line 129 in User_config.h
-`#define IR_Raw`
-If you are using the uno you will have to comment other gateway like ZgatewayRF, ZgatewayBT and ZgatewayIR to keep enough memory
-
-3) publish your code like below
+Publish your code like below
 ```
 mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoIR -m '{"raw":"8850,4450,600,550,550,550,600,1600,600,550,600,500,600,500,600,550,600,500,600,1650,600,1600,600,550,600,1600,600,1650,600,1600,600,1650,600,1600,600,550,600,500,600,550,550,1650,600,500,600,550,600,500,600,550,550,1650,600,1650,550,1650,600,550,550,1650,600,1650,550,1650,600,1650,600","protocol_name":"Raw"}'
 ```
@@ -111,12 +107,10 @@ In this case the best way is to use hex values instead, but if you can't you may
 In User_config.h replace:
 ```cpp
 # define JSON_MSG_BUFFER 512
-# define mqtt_max_packet_size 1024
 ```
 by
 ```cpp
 # define JSON_MSG_BUFFER 1280
-# define mqtt_max_packet_size 1280
 ```
 
 ## Repeat the IR signal OpenMQTTGateway receive

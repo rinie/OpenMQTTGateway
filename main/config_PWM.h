@@ -1,5 +1,5 @@
 /*
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
    This files enables you to set your parameters for the PWM actuator
 
@@ -22,12 +22,15 @@
 */
 
 /*-------------------PWM topics & parameters----------------------*/
+#ifndef config_PWM_h
+#define config_PWM_h
 
+#include "TheengsCommon.h"
 // PWM MQTT Subjects
 
 extern void setupPWM();
 extern void PWMLoop();
-extern void MQTTtoPWM(char*, JsonObject&);
+extern void XtoPWM(const char*, JsonObject&);
 
 #define subjectMQTTtoPWM          "/commands/MQTTtoPWM"
 #define subjectMQTTtoPWMset       subjectMQTTtoPWM "/set" //set channel(s) with JSON struct {"r":0-1,"g":0-1,"b":0-1,"w0":0-1,"w0":0-1,"fade":<fade time in seconds>}
@@ -55,3 +58,5 @@ extern void MQTTtoPWM(char*, JsonObject&);
 #ifndef PWM_DEFAULT_GAMMA
 #  define PWM_DEFAULT_GAMMA 2.2f
 #endif
+
+#endif // config_PWM_h

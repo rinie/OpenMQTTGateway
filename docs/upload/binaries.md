@@ -15,7 +15,6 @@ https://www.espressif.com/en/products/hardware/esp32/resources
 * Choose ESP32 DownloadTool
 * Set the files and the address as below:
 ![Flash download tool](../img/OpenMQTTgateway_ESP32_binary_flash.png)
-And set the parameters used by Arduino IDE, we are able to upload to ESP32 a binary file containing OpenMQTTGateway.
 * Set the config as above
 * Connect your ESP32 board and select the COM port 
 * Click on erase if it is your first upload
@@ -67,6 +66,19 @@ If you want to upload the ready-to-go binary from Linux (or any other OS where y
       Leaving...
       Hard resetting via RTS pin...
 * The board resets after the upload and boots the gateway firmware
+
+### Mac - esptool.py
+The approach for Mac is similiar to Linux. You need to install [Brew](https://brew.sh) for Mac to use [pip](https://docs.brew.sh/Homebrew-and-Python).
+The esptool.py tool needs to be adressed explicitly with .py at the end.
+If you do fail with the command, run `esptool.py chip_id` to let your Mac check for the ESP32 on your serial ports. A common failure for this looks like this:
+      
+      A fatal error occurred: Unable to verify flash chip connection (Invalid head of packet (0xE0): Possible serial noise or corruption.).
+
+If you receive this error
+
+      A fatal error occurred: Unable to verify flash chip connection (Packet content transfer stopped (received 7 bytes)).
+
+while flashing, try to reduce the baud rate to `--baud 115200`, as this seems to help in most cases.
 
 ## ESP8266
 * Download the NodeMCU Py Flasher tool :

@@ -1,0 +1,146 @@
+name: Reusable Documentation Workflow
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: 'Build mode: "prod" or "dev"'
+        required: false
+        type: string
+        default: "prod"
+      version:
+        description: 'Version string for documentation (use "auto" for automatic detection)'
+        required: false
+        type: string
+        default: "auto"
+      just-check:
+        description: "Just create a quick build to check for errors"
+        required: false
+        type: boolean
+        default: false
+      url-prefix:
+        description: 'URL prefix for docs (e.g., "/" for prod, "/dev/" for dev)'
+        required: false
+        type: string
+        default: "/"
+      run-pagespeed:
+        description: "Run PageSpeed Insights after deploy"
+        required: false
+        type: boolean
+        default: false
+      pagespeed-url:
+        description: "URL to test with PageSpeed"
+        required: false
+        type: string
+        default: "https://docs.openmqttgateway.com/"
+      destination-dir:
+        description: "GitHub Pages destination directory"
+        required: false
+        type: string
+        default: "."
+      python-version:
+        description: "Python version to use"
+        required: false
+        type: string
+        default: "3.13"
+      pio-version:
+        description: "PlatformIO version to use"
+        required: false
+        type: string
+        default: "v6.1.18"
+    secrets:
+      github-token:
+        description: "GitHub token for deploying to GitHub Pages"
+        required: false
+      pagespeed-apikey:
+        description: "API key for PageSpeed Insights"
+        required: false
+
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    name: Create and deploy documentation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for git tags
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+          enable-cache: false
+
+      - name: Install PlatformIO dependencies
+        run: |
+          uv pip install --system -U "https://github.com/pioarduino/platformio-core/archive/refs/tags/${{ inputs.pio-version }}.zip"
+
+      - name: Determine version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          MODE="${{ inputs.mode }}"
+
+          # If version is 'auto', determine it based on mode
+          if [ "$VERSION" = "auto" ]; then
+            if [ "$MODE" = "dev" ]; then
+              # Dev mode: always use short SHA
+              VERSION="$(git rev-parse --short HEAD)"
+              echo "Dev mode - using SHA: $VERSION"
+            else
+              # Prod mode: try to get git tag
+              if GIT_TAG=$(git describe --tags --exact-match 2>/dev/null); then
+                VERSION="$GIT_TAG"
+                echo "Using exact git tag: $VERSION"
+              elif LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null); then
+                VERSION="$LATEST_TAG"
+                echo "Using latest tag: $VERSION"
+              else
+                VERSION="v0.0.0-unknown"
+                echo "Warning: No tag found, using: $VERSION"
+              fi
+            fi
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Final version: $VERSION"
+
+      - name: Download all firmware artifacts
+        if: ${{ inputs.mode == 'dev' }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*"
+          path: generated/artifacts
+          merge-multiple: true
+
+      - name: Build documentation site
+        run: |
+          ./scripts/ci.sh site \
+            --clean \
+            --mode ${{ inputs.mode }} \
+            --version ${{ steps.version.outputs.version }} \
+            --url-prefix ${{ inputs.url-prefix }}
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ inputs.just-check == false }}
+        with:
+          github_token: ${{ secrets.github-token }}
+          publish_dir: ./generated/site
+          destination_dir: ${{ inputs.destination-dir }}
+          cname: docs.openmqttgateway.com
+
+      - name: Run PageSpeed Insights
+        if: ${{ inputs.just-check == false && inputs.run-pagespeed == true }}
+        uses: jakepartusch/psi-action@v1.3
+        id: psi
+        with:
+          url: ${{ inputs.pagespeed-url }}
+          threshold: 60
+          key: ${{ secrets.pagespeed-apikey }}

@@ -1,7 +1,7 @@
 /*
   OpenMQTTGateway  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker
    Send and receiving command by MQTT
 
    This files enables to set your parameter for the Home assistant mqtt Discovery
@@ -32,7 +32,7 @@ extern void pubMqttDiscovery();
 
 /**
  * Create a discover messages form a list of attribute
- * 
+ *
  * @param mac the MAC address
  * @param sensorList[][0] = component type
  * @param sensorList[][1] = name
@@ -57,7 +57,7 @@ extern void createDiscoveryFromList(const char* mac,
 
 /**
  * @brief Generate message and publish it on an MQTT discovery exploiter. For HA @see https://www.home-assistant.io/docs/mqtt/discovery/
- * 
+ *
  * @param sensor_type the Type
  * @param st_topic set state topic,
  * @param s_name set name,
@@ -71,15 +71,20 @@ extern void createDiscoveryFromList(const char* mac,
  * @param off_delay set off_delay
  * @param payload_available set payload_available,
  * @param payload_not_available set payload_not_available
- * @param gateway_entity set is a gateway entity, 
+ * @param gateway_entity set is a gateway entity,
  * @param cmd_topic set command topic
- * @param device_name set device name, 
- * @param device_manufacturer set device manufacturer, 
- * @param device_model set device model, 
- * @param device_mac set device MAC, 
+ * @param device_name set device name,
+ * @param device_manufacturer set device manufacturer,
+ * @param device_model set device model,
+ * @param device_mac set device MAC,
  * @param retainCmd set retain
  * @param state_class set state class
- * 
+ * @param state_off state off value
+ * @param state_on state on value
+ * @param enum_options options
+ * @param command_template command template
+ * @param diagnostic_entity true if entity_category is diagnostic
+ *
  * */
 extern void createDiscovery(const char* sensor_type,
                             const char* state_topic, const char* s_name, const char* unique_id,
@@ -88,33 +93,34 @@ extern void createDiscovery(const char* sensor_type,
                             int off_delay,
                             const char* payload_available, const char* payload_not_available, bool gateway_entity, const char* command_topic,
                             const char* device_name, const char* device_manufacturer, const char* device_model, const char* device_mac, bool retainCmd,
-                            const char* state_class, const char* state_off = nullptr, const char* state_on = nullptr, const char* enum_options = nullptr);
+                            const char* state_class, const char* state_off = nullptr, const char* state_on = nullptr, const char* enum_options = nullptr,
+                            const char* command_template = nullptr, bool diagnostic_entity = false);
 
+#ifdef ZgatewayRF
 /**
  * @brief Create a message for Discovery Device Trigger. For HA @see https://www.home-assistant.io/integrations/device_trigger.mqtt/
- * @param use_gateway_info      Boolean where true mean use the OMG information as Device Information
- * @param topic                 The Topic  where the trigger will publish the content
+ * @param topic                 Mandatory - The MQTT topic subscribed to receive trigger events.
  * @param type                  The type of the trigger, e.g. button_short_press. Entries supported by the HA Frontend: button_short_press, button_short_release, button_long_press, button_long_release, button_double_press, button_triple_press, button_quadruple_press, button_quintuple_press. If set to an unsupported value, will render as subtype type, e.g. button_1 spammed with type set to spammed and subtype set to button_1
  * @param subtype               The subtype of the trigger, e.g. button_1. Entries supported by the HA frontend: turn_on, turn_off, button_1, button_2, button_3, button_4, button_5, button_6. If set to an unsupported value, will render as subtype type, e.g. left_button pressed with type set to button_short_press and subtype set to left_button
- * @param unique_id             Valid only if gateway entry is false, The IDs that uniquely identify the device. For example a serial number.
- * @param device_name           Valid only if gateway entry is false, The name of the device.
- * @param device_manufacturer   Valid only if gateway entry is false, The manufacturer of the device.
- * @param device_model          Valid only if gateway entry is false, The model of the device.
- * @param device_mac            Valid only if gateway entry is false, The connection of the device to the outside world
+  * @param object_id             The object_id of the trigger.
+ * @param value_template        The template to render the value of the trigger. The template can use the variables trigger.id, trigger.type, trigger.subtype, trigger.payload, trigger.payload_json, trigger.topic, trigger.timestamp, trigger.value, trigger.value_json. The template can be a string or a JSON object. If the template is a JSON object, it must be a valid JSON object. If the template is a string, it will be rendered as a string. If the template is a JSON object, it will be rendered as a JSON object.
  */
-void announceDeviceTrigger(bool use_gateway_info,
-                           char* topic,
-                           char* type,
-                           char* subtype,
-                           char* unique_id,
-                           char* device_name,
-                           char* device_manufacturer,
-                           char* device_model,
-                           char* device_mac);
+void announceGatewayTrigger(const char* topic,
+                            const char* type,
+                            const char* subtype,
+                            const char* object_id,
+                            const char* value_template);
+#endif // ZgatewayRF
 
-#ifndef discovery_Topic
-#  define discovery_Topic "homeassistant"
+#ifdef discovery_Topic //Deprecated - use discovery_Prefix instead
+#  pragma message("compiler directive discovery_Topic is deprecated, use discovery_Prefix instead")
+#  define discovery_Prefix discovery_Topic
 #endif
+#ifndef discovery_Prefix
+#  define discovery_Prefix "homeassistant"
+#endif
+extern char discovery_prefix[];
+
 // discovery_republish_on_reconnect false to publish discovery topics over MQTT only with first connect
 // discovery_republish_on_reconnect true to always republish discovery topics over MQTT when connection is re-established
 #ifndef discovery_republish_on_reconnect
@@ -129,12 +135,11 @@ void announceDeviceTrigger(bool use_gateway_info,
 #  define GATEWAY_MANUFACTURER "OMG_community"
 #endif
 
-/*-------------- Auto discovery macros-----------------*/
-// Set the line below to true so as to have autodiscovery working with OpenHAB
-#ifndef OpenHABDiscovery
-#  define OpenHABDiscovery false
+#ifndef ForceDeviceName
+#  define ForceDeviceName false // Set to true to force the device name to be from the name of the device and not the model
 #endif
 
+/*-------------- Auto discovery macros-----------------*/
 // Home assistant autodiscovery value key definition
 #define jsonBatt        "{{ value_json.batt | is_defined }}"
 #define jsonLux         "{{ value_json.lux | is_defined }}"
@@ -172,85 +177,109 @@ void announceDeviceTrigger(bool use_gateway_info,
 #define jsonAlarm       "{{ value_json.alarm | is_defined }}"
 #define jsonInuse       "{{ value_json.power | is_defined | float > 0 }}"
 #define jsonInuseRN8209 "{% if value_json.power > 0.02 -%} on {% else %} off {%- endif %}"
-#define jsonVoltBM2     "{% if value_json.uuid is not defined and value_json.volt is defined -%} {{value_json.volt}} {%- endif %}"
+#define jsonVoltBM      "{% if value_json.uuid is not defined and value_json.volt is defined -%} {{value_json.volt}} {%- endif %}"
+#define jsonRSSI        "{{ value_json.rssi | is_defined }}"
 
 #define stateClassNone            ""
 #define stateClassMeasurement     "measurement"
 #define stateClassTotal           "total"
 #define stateClassTotalIncreasing "total_increasing"
 
-// From https://github.com/home-assistant/core/blob/d7ac4bd65379e11461c7ce0893d3533d8d8b8cbf/homeassistant/const.py#L225
-// List of classes available in Home Assistant
-const char* availableHASSClasses[] = {"battery",
-                                      "carbon_dioxide",
-                                      "carbon_monoxide",
-                                      "current",
-                                      "data_size",
-                                      "distance",
-                                      "door",
-                                      "duration",
-                                      "energy",
-                                      "enum",
-                                      "gas",
-                                      "humidity",
-                                      "illuminance",
-                                      "irradiance",
-                                      "lock",
-                                      "motion",
-                                      "moving",
-                                      "pm10",
-                                      "pm25",
-                                      "power",
-                                      "power_factor",
-                                      "pressure",
-                                      "problem",
-                                      "restart",
-                                      "signal_strength",
-                                      "temperature",
-                                      "timestamp",
-                                      "voltage",
-                                      "water",
-                                      "weight",
-                                      "window"};
+// Define all HASS device classes as macros for reuse and consistency
+#define HASS_CLASS_BATTERY_CHARGING        "battery_charging"
+#define HASS_CLASS_BATTERY                 "battery"
+#define HASS_CLASS_CARBON_DIOXIDE          "carbon_dioxide"
+#define HASS_CLASS_CARBON_MONOXIDE         "carbon_monoxide"
+#define HASS_CLASS_CONNECTIVITY            "connectivity"
+#define HASS_CLASS_CURRENT                 "current"
+#define HASS_CLASS_DATA_SIZE               "data_size"
+#define HASS_CLASS_DISTANCE                "distance"
+#define HASS_CLASS_DOOR                    "door"
+#define HASS_CLASS_DURATION                "duration"
+#define HASS_CLASS_ENERGY                  "energy"
+#define HASS_CLASS_ENUM                    "enum"
+#define HASS_CLASS_FREQUENCY               "frequency"
+#define HASS_CLASS_GAS                     "gas"
+#define HASS_CLASS_HUMIDITY                "humidity"
+#define HASS_CLASS_ILLUMINANCE             "illuminance"
+#define HASS_CLASS_IRRADIANCE              "irradiance"
+#define HASS_CLASS_LOCK                    "lock"
+#define HASS_CLASS_MOTION                  "motion"
+#define HASS_CLASS_MOVING                  "moving"
+#define HASS_CLASS_OCCUPANCY               "occupancy"
+#define HASS_CLASS_PM1                     "pm1"
+#define HASS_CLASS_PM10                    "pm10"
+#define HASS_CLASS_PM25                    "pm25"
+#define HASS_CLASS_POWER_FACTOR            "power_factor"
+#define HASS_CLASS_POWER                   "power"
+#define HASS_CLASS_PRECIPITATION_INTENSITY "precipitation_intensity"
+#define HASS_CLASS_PRECIPITATION           "precipitation"
+#define HASS_CLASS_PRESSURE                "pressure"
+#define HASS_CLASS_PROBLEM                 "problem"
+#define HASS_CLASS_RESTART                 "restart"
+#define HASS_CLASS_SIGNAL_STRENGTH         "signal_strength"
+#define HASS_CLASS_SOUND_PRESSURE          "sound_pressure"
+#define HASS_CLASS_TEMPERATURE             "temperature"
+#define HASS_CLASS_TIMESTAMP               "timestamp"
+#define HASS_CLASS_VOLTAGE                 "voltage"
+#define HASS_CLASS_WATER                   "water"
+#define HASS_CLASS_WEIGHT                  "weight"
+#define HASS_CLASS_WIND_SPEED              "wind_speed"
+#define HASS_CLASS_WINDOW                  "window"
 
-// From https://github.com/home-assistant/core/blob/d7ac4bd65379e11461c7ce0893d3533d8d8b8cbf/homeassistant/const.py#L379
-// List of units available in Home Assistant
-const char* availableHASSUnits[] = {"W",
-                                    "kW",
-                                    "V",
-                                    "kWh",
-                                    "A",
-                                    "W",
-                                    "°C",
-                                    "°F",
-                                    "ms",
-                                    "s",
-                                    "min",
-                                    "hPa",
-                                    "L",
-                                    "kg",
-                                    "lb",
-                                    "µS/cm",
-                                    "ppm",
-                                    "μg/m³",
-                                    "m³",
-                                    "mg/m³",
-                                    "m/s²",
-                                    "lx",
-                                    "Ω",
-                                    "%",
-                                    "bar",
-                                    "bpm",
-                                    "dB",
-                                    "dBm",
-                                    "B",
-                                    "UV index",
-                                    "m/s",
-                                    "km/h",
-                                    "°",
-                                    "mm",
-                                    "mm/h",
-                                    "cm"};
+// Define all HASS units as macros for reuse and consistency
+#define HASS_UNIT_AMP         "A"
+#define HASS_UNIT_BYTE        "B"
+#define HASS_UNIT_UV_INDEX    "UV index"
+#define HASS_UNIT_VOLT        "V"
+#define HASS_UNIT_WATT        "W"
+#define HASS_UNIT_BPM         "bpm"
+#define HASS_UNIT_BAR         "bar"
+#define HASS_UNIT_CM          "cm"
+#define HASS_UNIT_DB          "dB"
+#define HASS_UNIT_DBM         "dBm"
+#define HASS_UNIT_FT          "ft"
+#define HASS_UNIT_HOUR        "h"
+#define HASS_UNIT_HPA         "hPa"
+#define HASS_UNIT_HZ          "Hz"
+#define HASS_UNIT_KG          "kg"
+#define HASS_UNIT_KW          "kW"
+#define HASS_UNIT_KWH         "kWh"
+#define HASS_UNIT_KMH         "km/h"
+#define HASS_UNIT_LB          "lb"
+#define HASS_UNIT_LITER       "L"
+#define HASS_UNIT_LX          "lx"
+#define HASS_UNIT_MS          "m/s"
+#define HASS_UNIT_MS2         "m/s²"
+#define HASS_UNIT_M3          "m³"
+#define HASS_UNIT_MGM3        "mg/m³"
+#define HASS_UNIT_MIN         "min"
+#define HASS_UNIT_MM          "mm"
+#define HASS_UNIT_MMH         "mm/h"
+#define HASS_UNIT_MILLISECOND "ms"
+#define HASS_UNIT_MV          "mV"
+#define HASS_UNIT_USCM        "µS/cm"
+#define HASS_UNIT_UGM3        "μg/m³"
+#define HASS_UNIT_OHM         "Ω"
+#define HASS_UNIT_PERCENT     "%"
+#define HASS_UNIT_DEGREE      "°"
+#define HASS_UNIT_CELSIUS     "°C"
+#define HASS_UNIT_FAHRENHEIT  "°F"
+#define HASS_UNIT_SECOND      "s"
+#define HASS_UNIT_WB2         "wb²"
+// Additional commonly used units not in the standard list
+#define HASS_UNIT_METER "m"
+#define HASS_UNIT_PPM   "ppm"
+#define HASS_UNIT_WM2   "wm²"
+
+#define HASS_TYPE_SENSOR         "sensor"
+#define HASS_TYPE_BINARY_SENSOR  "binary_sensor"
+#define HASS_TYPE_SWITCH         "switch"
+#define HASS_TYPE_BUTTON         "button"
+#define HASS_TYPE_NUMBER         "number"
+#define HASS_TYPE_UPDATE         "update"
+#define HASS_TYPE_COVER          "cover"
+#define HASS_TYPE_DEVICE_TRACKER "device_tracker"
 
 // Define the command used to update through OTA depending if we want to update from dev nightly or latest release
 #if DEVELOPMENTOTA

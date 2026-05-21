@@ -1,5 +1,5 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
    Act as a wifi or ethernet gateway between your RF/infrared IR signal  and a MQTT broker
    Send and receiving command by MQTT
@@ -25,7 +25,7 @@
 #define config_C37_YL83_HMRD_h
 
 extern void setupZsensorC37_YL83_HMRD();
-extern void C37_YL83_HMRDtoMQTT();
+extern void C37_YL83_HMRDtoX();
 extern void MeasureC37_YL83_HMRDWater();
 
 /*----------------------------USER PARAMETERS-----------------------------*/

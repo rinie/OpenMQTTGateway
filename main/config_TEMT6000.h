@@ -1,7 +1,7 @@
 /*  
-  OpenMQTTGateway Addon  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker 
    Send and receiving command by MQTT
  
    This is the Light Meter Addon based on modules with a TEMT6000:
@@ -48,8 +48,5 @@ extern void MeasureLightIntensityTEMT6000();
 /*----------------------------USER PARAMETERS-----------------------------*/
 /*-------------DEFINE YOUR MQTT PARAMETERS BELOW----------------*/
 #define subjectTEMT6000toMQTT "/LIGHTtoMQTT"
-
-//Time used to wait for an interval before resending measured values
-unsigned long timetemt6000 = 0;
 
 #endif

@@ -1,7 +1,7 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker 
    Send and receiving command by MQTT
  
    This files enables to set your parameter for the LORA gateway
@@ -26,10 +26,12 @@
 #ifndef config_LORA_h
 #define config_LORA_h
 
+#include "TheengsCommon.h"
+
 extern void setupLORA();
-extern void LORAtoMQTT();
-extern void MQTTtoLORA(char* topicOri, char* datacallback);
-extern void MQTTtoLORA(char* topicOri, JsonObject& RFdata);
+extern void LORAtoX();
+extern void XtoLORA(const char* topicOri, const char* datacallback);
+extern void XtoLORA(const char* topicOri, JsonObject& RFdata);
 /*----------------------LORA topics & parameters-------------------------*/
 #define subjectLORAtoMQTT    "/LORAtoMQTT"
 #define subjectMQTTtoLORA    "/commands/MQTTtoLORA"
@@ -112,6 +114,7 @@ struct LORAConfig_s {
 };
 
 #ifdef ZmqttDiscovery
+#  include "config_mqttDiscovery.h"
 extern void launchLORADiscovery(bool overrideDiscovery);
 // This structure stores the entities of the devices and is they have been discovered or not
 // The uniqueId is composed of the device id + the key
@@ -125,11 +128,13 @@ struct LORAdevice {
   bool isDisc;
 };
 
-const char LORAparameters[3][4][12] = {
+const char LORAparameters[5][4][12] = {
     // LORA key, name, unit, device_class
-    {"tempc", "temperature", "°C", "temperature"},
-    {"hum", "humidity", "%", "humidity"},
-    {"moi", "moisture", "%", "humidity"}};
+    {"tempc", HASS_CLASS_TEMPERATURE, HASS_UNIT_CELSIUS, HASS_CLASS_TEMPERATURE},
+    {"hum", HASS_CLASS_HUMIDITY, HASS_UNIT_PERCENT, HASS_CLASS_HUMIDITY},
+    {"moi", "moisture", HASS_UNIT_PERCENT, HASS_CLASS_HUMIDITY},
+    {"batt", HASS_CLASS_BATTERY, HASS_UNIT_PERCENT, HASS_CLASS_BATTERY},
+    {"count", HASS_CLASS_WATER, HASS_UNIT_LITER, HASS_CLASS_WATER}};
 
 #endif
 

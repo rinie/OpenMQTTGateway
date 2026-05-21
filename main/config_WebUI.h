@@ -1,15 +1,15 @@
-/*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+/*
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker
    Send and receiving command by MQTT
- 
+
    This files enables to set your parameter for the DHT11/22 sensor
-  
+
     Copyright: (c)Florian ROBERT
-  
+
     This file is part of OpenMQTTGateway.
-    
+
     OpenMQTTGateway is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -26,8 +26,9 @@
 #ifndef config_WebUI_h
 #define config_WebUI_h
 
-#include <ArduinoJson.h>
 #include <Wire.h>
+
+#include "TheengsCommon.h"
 
 #define WEBUI_TEXT_WIDTH 128
 
@@ -52,9 +53,9 @@
 #endif
 
 #ifdef WEBUI_TRACE_LOGGING
-#  define WEBUI_TRACE_LOG(...) Log.trace(__VA_ARGS__)
+#  define WEBUI_TRACE_LOG(...) THEENGS_LOG_TRACE(__VA_ARGS__)
 #else
-#  define WEBUI_TRACE_LOG(...)
+#  define WEBUI_TRACE_LOG(...) ((void)0)
 #endif
 
 #ifndef WEBUI_AUTH
@@ -64,6 +65,8 @@
 #ifndef WEBUI_LOGIN
 #  define WEBUI_LOGIN "admin"
 #endif
+
+extern char ota_pass[];
 
 /*------------------- End of Compiler Directives ----------------------*/
 
@@ -92,7 +95,7 @@ struct webUIQueueMessage {
   char line2[WEBUI_TEXT_WIDTH];
   char line3[WEBUI_TEXT_WIDTH];
   char line4[WEBUI_TEXT_WIDTH];
-} webUIQueueMessage_t;
+};
 
 /*------------------- Global Functions and Variables ----------------------*/
 
@@ -102,12 +105,12 @@ void webUIPubPrint(const char*, JsonObject&);
 #endif
 void WebUISetup();
 void WebUILoop();
-void MQTTtoWebUI(char*, JsonObject&);
+void XtoWebUI(const char*, JsonObject&);
 
 String stateWebUIStatus();
 
-webUIQueueMessage* currentWebUIMessage;
-bool newSSD1306Message = false; // Flag to indicate new message to display
+extern webUIQueueMessage* currentWebUIMessage;
+extern bool newSSD1306Message; // Flag to indicate new message to display
 
 /*------------------- End of Global Functions ----------------------*/
 

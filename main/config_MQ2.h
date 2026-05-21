@@ -1,7 +1,7 @@
 /*  
-  OpenMQTTGateway Addon  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker 
    Send and receiving command by MQTT
  
    This is the MQ2 GAS Sensor Addon based on modules with a MQ:
@@ -11,12 +11,12 @@
    Connection Scheme:
    --------------------
 
-   MQ-2 -------> Arduino Uno ----------> ESP8266
-   ==============================================
-   Vcc ---------> 3.3V or 5V------------> 3.3V or 5V
-   GND ---------> GND ------------------> GND
-   A0 ----------> Pin A0 ---------------> A0
-   D0 ----------> Pin D4 ---------------> D4
+   MQ-2 -------> ESP8266
+   ==========================
+   Vcc ---------> 3.3V or 5V
+   GND ---------> GND
+   A0 ----------> A0
+   D0 ----------> D4
   
     This file is part of OpenMQTTGateway.
     
@@ -37,7 +37,7 @@
 #define config_MQ2_h
 
 extern void setupZsensorMQ2();
-extern void MQ2toMQTT();
+extern void MQ2toX();
 
 #ifndef MQ2SENSORADCPIN
 #  ifdef ESP32
@@ -61,8 +61,5 @@ extern void MQ2toMQTT();
 /*----------------------------USER PARAMETERS-----------------------------*/
 /*-------------DEFINE YOUR MQTT PARAMETERS BELOW----------------*/
 #define subjectMQ2toMQTT "/GAStoMQTT/mq2"
-
-//Time used to wait for an interval before resending measured values
-unsigned long timemq2 = 0;
 
 #endif

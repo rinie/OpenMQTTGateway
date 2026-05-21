@@ -1,30 +1,49 @@
 ---
-title: BLE ESP32 gateway
-description: Versatile BLE gateway that scans and decodes data from various Bluetooth devices. It integrates seamlessly with MQTT brokers and controllers like Home Assistant and OpenHAB. Monitor temperature, humidity, pressure, and more for smarter control.
+title: Bluetooth ESP32 gateway
+description: Versatile Bluetooth gateway that scans and decodes data from various Bluetooth Low Energy (BLE) devices. It integrates seamlessly with MQTT brokers and controllers like Home Assistant and OpenHAB. Monitor temperature, humidity, pressure, and more for smarter control.
 ---
-# BLE gateway
+# Bluetooth gateway
 
-The manufacturer agnostic BLE gateway acts as a powerful BLE scanner and decoder of [Bluetooth devices](https://compatible.openmqttgateway.com/index.php/devices/ble-devices/), allowing you to visualize and analyze information from a wide range of sensors. 
-It can also act as a presence detection gateway by reading the nearby BLE tags or tracker.
+The manufacturer agnostic Bluetooth Low Energy (BLE) gateway acts as a powerful BLE scanner and decoder of [Bluetooth devices](https://compatible.openmqttgateway.com/index.php/devices/ble-devices/), allowing you to visualize and analyze information from a wide range of sensors. 
+It can also act as a device tracker and presence detection gateway by receiving nearby BLE devices and trackers.
 
 Data are transmitted to an MQTT broker, where it can be used to trigger events and rules, as well as displayed, stored and processed in your favorite controller (Home Assistant, OpenHAB, Jeedom, Domoticz, ioBroker or any MQTT compatible software).
 
 With the ability to monitor and analyze data such as temperature, humidity, moisture, luminance, weight, pressure, fine particles, and more, the BLE gateway provides a flexible and customizable solution for integrating BLE technology into your control and monitoring systems.
 
-![BLE sensors and devices](../img/OpenMQTTGateway-sensors-ble.png)
+<div style="text-align: center;">
+    <img src="../img/OpenMQTTGateway-sensors-ble.png" alt="BLE sensors and devices" style="max-width: 100%; height: auto;">
+</div>
 
-## The first plug-and-play OpenMQTTGateway BLE gateway and Smart Plug!
+## Products powered by OpenMQTTGateway
 
-[Theengs plug](https://shop.theengs.io/products/theengs-plug-smart-plug-ble-gateway-and-energy-consumption) is available flashed with OpenMQTTGateway, and brings the functions below:
+### Theengs Bridge, BLE gateway with external antenna
+
+[Theengs bridge](https://shop.theengs.io/products/theengs-bridge-esp32-ble-mqtt-gateway-with-ethernet-and-external-antenna) is a powerfull BLE to MQTT gateway for over [100 sensors](https://decoder.theengs.io/devices/devices.html). Equipped with an Ethernet port, and external antenna, ensuring an enhanced range for your BLE sensors. It supports also WiFi connectivity.
+
+<div style="text-align: center;">
+    <a href="https://shop.theengs.io/products/theengs-bridge-esp32-ble-mqtt-gateway-with-ethernet-and-external-antenna" target="_blank" rel="noopener noreferrer">
+    <img src="../img/Theengs-Bridge-ble-gateway.png" alt="Theengs bridge view" style="max-width: 100%; height: auto;">
+    </a>
+</div>
+
+### Theengs Plug, BLE gateway and Smart Plug
+
+[Theengs plug](https://shop.theengs.io/products/theengs-plug-smart-plug-ble-gateway-and-energy-consumption) brings the following features:
 * BLE to MQTT gateway, tens of [Bluetooth devices](https://compatible.openmqttgateway.com/index.php/devices/ble-devices/) supported thanks to Theengs Decoder library. The plug uses an ESP32 acting as a BLE to Wifi gateway to scan, decode and forward the data of the nearby sensors,
 * Smart plug that can be controlled remotely,
 * Energy consumption monitoring,
-* Presence detection (beta).
+* Device tracker,
+* Presence detection (beta),
+* Local connectivity first.
 
-[![Theengs plug view](../img/Theengs-Plug-OpenMQTTGateway.png)](https://shop.theengs.io/products/theengs-plug-smart-plug-ble-gateway-and-energy-consumption)
+<div style="text-align: center;">
+    <a href="https://shop.theengs.io/products/theengs-plug-smart-plug-ble-gateway-and-energy-consumption" target="_blank" rel="noopener noreferrer">
+    <img src="../img/Theengs-Plug-OpenMQTTGateway.png" alt="Theengs plug view" style="max-width: 100%; height: auto;">
+    </a>
+</div>
 
-Support the project by purchasing the [Theengs plug](https://shop.theengs.io/products/theengs-plug-smart-plug-ble-gateway-and-energy-consumption)
-The plug is available in North America only, other regions are planned.
+Support the project by purchasing the [Theengs bridge](https://shop.theengs.io/products/theengs-bridge-esp32-ble-mqtt-gateway-with-ethernet-and-external-antenna) or the [Theengs plug](https://shop.theengs.io/products/theengs-plug-smart-plug-ble-gateway-and-energy-consumption)
 
 ## Disable or enable the BLE gateway (default: true, available with HA discovery)
 
@@ -55,16 +74,12 @@ Once the data has been transmitted to the MQTT broker, it can be easily integrat
 
 Examples of compatible sensors among [our list](https://decoder.theengs.io/devices/devices_by_brand.html: Mi Flora, Mi jia, LYWDS02, LYWSD03MMC, ClearGrass, Mi scale, iBBQ, TPMS
 
-## Receiving signals from BLE tracker devices for Presence detection
-The gateway can detect BLE trackers from Tile, Nut, TagIt and iTag, as well as other devices with additional properties decoding like Mi Band, Amazfit, RuuviTag and others indicated as Presence Trackers in the [compatible BLE devices list](https://decoder.theengs.io/devices/devices.html), and automatically creates a device tracker entity following the Home Assistant discovery convention (if auto discovery is activated).
-To do this activate the "BT: Publish HASS presence" switch in your controller or send the following MQTT command to your broker:
-`mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"hasspresence":true}'`
+## Receiving signals from BLE devices for Device Tracker detection
+The gateway will detect BLE trackers from Tile, Nut, TagIt, iTAG, Gigaset G-Tag, TicWatch GTH (Pro), Teltonika FMT100 vehicle tracker and Bosch Nyon eBike computers, as well as other devices with additional properties decoding like Mi Band, Amazfit, RuuviTag and others indicated as Device Trackers in the [compatible BLE devices list](https://decoder.theengs.io/devices/devices.html), and automatically create a device tracker entity following the Home Assistant discovery convention (if auto discovery is activated).
 
-The entity created can be attached to a person to leverage presence detection. The `away` or `not home` state is triggered if the BLE tracker is not detected during the timer defined by `presenceawaytimer`.
+The devicen tracker entity created can be attached to a person to leverage presence detection. The `away` or `not home` state is triggered if the BLE tracker is not detected during the timer defined by `presenceawaytimer`.
  
 ![Away home Home assistant view](../img/OpenMQTTGateway-BLE-tracker-Home-Assistant.png)
-
-If you have multiple gateways, your BLE trackers may not be detected temporary by one gateway but still by the others. In this case you will see the tracker appears offline briefly and online again once it is detected by the others gateways.
 
 By default `presenceawaytimer` is set to 120s, you can change it from the slider in your controller or with the following command (ms)
 
@@ -72,15 +87,16 @@ By default `presenceawaytimer` is set to 120s, you can change it from the slider
 
 Generally BLE devices will not broadcast if they are paired so you may need to ensure your beacons is unpaired/disconnected before it will be seen by the gateway.
 
-Consider the distance estimation as a beta feature.
-
 Note that you can find apps to simulate beacons and do some tests like [Beacon simulator](https://play.google.com/store/apps/details?id=net.alea.beaconsimulator)
 
-iOS version >=10 devices advertise without an extra app MAC address, nevertheless this address [changes randomly](https://github.com/1technophile/OpenMQTTGateway/issues/71) and cannot be used for presence detection. You must install an app to advertise a fixed MAC address.
+Apple iOS version >=10 devices advertise without an extra MAC address app, nevertheless this address [changes randomly](https://github.com/1technophile/OpenMQTTGateway/issues/71) and can currently only be used with [Theengs Gateway](https://gateway.theengs.io/) and its [Identity MAC Address and Identity Resolving Key](https://gateway.theengs.io/use/use.html#getting-identity-resolving-key-irk-for-apple-watch-iphone-and-ipad) feature.
 
 ::: tip INFO
 The `presenceawaytimer` is also used to reset the state of the PIR/motion sensors to `off` when using HA MQTT discovery convention. If the Sensor does not detect a motion, its state will be automatically set to `off` after the `presenceawaytimer`.
 :::
+
+## Receiving signals from BLE devices for Presence detection
+To do this activate the "BT: Publish HASS presence" switch in your controller or send the following MQTT command to your broker: mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"hasspresence":true}'
 
 ## Receiving signals from BLE devices with accelerometers for movement detection
 The gateway is designed to detect BLE trackers from BlueCharm and automatically create a binary sensor entity in accordance with the Home Assistant discovery convention, provided that auto discovery is enabled.
@@ -108,8 +124,6 @@ A white list is a list of MAC addresses permitted to be published by OMG
 to set white list
 `mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"white-list":["01:23:14:55:16:15","4C:65:77:88:9C:79","4C:65:A6:66:3C:79"]}'`
 
-Note: if you want to filter (white or black list) on BLE sensors that are auto discovered, you need to wait for the discovery before applying the white or black list, or temporarily disable it:
-
 to temporarily disable white/black list
 `mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"ignoreWBlist":true}'`
 
@@ -119,18 +133,21 @@ to enable white/black list back
 ::: tip
 So as to keep your white/black list persistent you can publish it with the retain option of MQTT (-r with mosquitto_pub or retain check box of MQTT Explorer)
 `mosquitto_pub -r -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"white-list":["01:23:14:55:16:15","4C:65:77:88:9C:79","4C:65:A6:66:3C:79"]}'`
+
+**NOTE**: Only when sending a white/black list should the retain option be set. All other commands to any OpenMQTTGateway gateway **must not** have the retain option set. To persist such other command settings, read [the following section](https://docs.openmqttgateway.com/use/ble.html#store-ble-configuration-into-the-gateway)
 :::
 
 ## Setting the time between BLE scans and force a scan (available with HA discovery)
 
-If you want to change the time between readings you can change the interval by MQTT.
-For example, if you want the BLE to scan every 66 seconds:
+Example if you want the BLE to scan every 66 seconds:
 
 `mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"interval":66000}'`
 
 you can also force a scan to be done by the following command:
 
 `mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"interval":0}'`
+
+Changing the interval between scans will deactivate adaptive scanning.
 
 ::: tip
 With Home Assistant, this command is directly available through MQTT auto discovery as a switch into the HASS OpenMQTTGateway device entities list.
@@ -140,9 +157,9 @@ Once the forced scan has completed, the previous scan interval value will be res
 
 The default value `TimeBtwRead` is set into config_BT.h or into your .ini file for platformio users.
 
-If you want to scan continuously for BLE devices, for example for beacon location you can set the interval to 1ms:
+If you want to scan continuously for BLE devices, for example for beacon location you can set the interval to 100ms:
 
-`mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"interval":1}'`
+`mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"interval":100}'`
 
 In this case you should deactivate the BLE connection mechanism to avoid concurrency between scan and connections (see chapter below, bleconnect).
 
@@ -162,7 +179,7 @@ If you want to change this characteristic:
 
 `mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"onlysensors":true}'`
 
-The gateway will publish only the detected sensors like Mi Flora, Mi jia, LYWSD03MMC... and not the other BLE devices. This is useful if you don't use the gateway for presence detection but only to retrieve sensors data.
+The gateway will publish only detected sensors and trackers like Mi Flora, Mi jia, Mi Band, LYWSD03MMC... or trackers like Tile, Nut, TagIt or iTag, and not any other other BLE devices. This is useful if you don't use the gateway for presence detection with unrecognised trackers.
 
 ## Setting if the gateway publishes known devices which randomly change their MAC address (default: false)
 
@@ -190,7 +207,7 @@ An overview with background information to better understand the different setti
 
 **Active scanning:** With this scanning mode the gateway sends out requests for sensor broadcasts first, before then picking up the broadcast advertisement data. Some devices require this request before they send out all data in their broadcasts. The interval for this active scanning with request first is set by [{"intervalacts":300000}](#setting-the-time-between-active-scanning)
 
-If adaptive scanning is set to false and you want to manually set these intervals, setting [Publishing advertisement and advanced data](#advanced-publishing-advertisement-and-advanced-data-default-false) to true will show you additional data about which of your devices require active scanning and/or continuous scanning, so that you can tune these setting to your devices and your individual requirements of their data.
+Setting [Publishing advertisement and advanced data](#advanced-publishing-advertisement-and-advanced-data-default-false) to true will show you additional data about which of your devices require active scanning and/or continuous scanning, so that you can tune these setting to your devices and your individual requirements of their data.
 
 **"cont":true** - the device requires continuous scanning. If passive ({"interval":100}) or active ({"intervalacts":100}) depends on the additional device specification.
 
@@ -200,9 +217,15 @@ If adaptive scanning is set to false and you want to manually set these interval
 
 If you have passive scanning activated, but also have some devices which require active scanning, this defines the time interval between two intermittent active scans.
 
-If you want to change the time between active scans you can change it by MQTT. For setting the active scan interval time to every 5 minutes:
+Example for setting the active scan interval time to every 5 minutes:
 
 `mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"intervalacts":300000}'`
+
+Changing the active scan interval will deactivate adaptive scanning.
+
+::: warning Note
+The active scan interval `intervalacts` can only bet set equal to or higher than the passive scan interval `interval`, as any lower value would not make any sense.
+:::
 
 ## Setting the duration of a scan (available with HA discovery)
 
@@ -292,6 +315,11 @@ By the way, if you want to load the default built-in configuration (on any board
 `mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT/config -m '{"init":true}'`
 Note that it will not change the stored configuration, `erase` or `save` is still needed to overwrite the saved configuration.
 
+## Controlling devices
+::: tip
+To control devices reliably, set the interval between scans to at least 5 seconds and the scan duration to 1 second to ensure commands are successfully transmitted to your devices.
+:::
+
 ## Read/write BLE characteristics over MQTT
 
 The gateway can read and write BLE characteristics from devices and provide the results in an MQTT message.  
@@ -347,10 +375,16 @@ Response:
 ::: tip
 The `ttl` parameter is the number of attempts to connect (defaults to 1), which occur after the BLE scan completes.  
 `value_type` can be one of: STRING, HEX, INT, FLOAT. Default is STRING if omitted in the message.
+:::
 
 ## SwitchBot Bot control (available with HA discovery)
 
-SwitchBot Bot devices are automatically discovered and available as a device in the configuration menu of home assistant.
+SwitchBot Bot devices are automatically discovered and available as a device in the Home Assistant Settings menu. The following commands are supported:
+* Press
+* On
+* Off
+* Up
+* Down
 
 ::: tip
 If the SwitchBot mode is changed the ESP32 must be restarted. 
@@ -358,18 +392,173 @@ If the SwitchBot mode is changed the ESP32 must be restarted.
 
 The device can also be controlled over MQTT with a simplified BLE write command.
 
-### Example command to set the SwitchBot state to ON:
+### Set the SwitchBot Bot state to ON:
 ```
 mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
-  "SBS1":"on",
-  "mac":"AA:BB:CC:DD:EE:FF"
+  "model_id":"X1",
+  "cmd":"on",
+  "id":"AA:BB:CC:DD:EE:FF"
 }'
 ```
+
+### Set the SwitchBot Bot state to OFF:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"X1",
+  "cmd":"off",
+  "id":"AA:BB:CC:DD:EE:FF"
+}'
+```
+
+### Set the SwitchBot Bot to PRESS:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"X1",
+  "cmd":"press",
+  "id":"AA:BB:CC:DD:EE:FF"
+}'
+```
+
+### Set the SwitchBot Bot to go UP:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"X1",
+  "cmd":"up",
+  "id":"AA:BB:CC:DD:EE:FF"
+}'
+```
+
+### Set the SwitchBot Bot to go DOWN:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"X1",
+  "cmd":"down",
+  "id":"AA:BB:CC:DD:EE:FF"
+}'
+```
+
 Response (assuming success):
 ```
 {
   "id":"AA:BB:CC:DD:EE:FF",
   "state":"on"
+}
+```
+
+## SwitchBot Blind Tilt control (available with HA discovery)
+
+SwitchBot Blind Tilt devices are automatically discovered and available as a device in the settings Home Assistant Settings menu. The following commands are supported:
+* Open
+* Close down
+* Set a percentage
+
+The device can also be controlled over MQTT with a simplified BLE write command.
+
+### Set the SwitchBot Blind Tilt state to OPEN:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W270160X",
+  "tilt":"open",
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Set the SwitchBot Blind Tilt state to CLOSE_DOWN:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W270160X",
+  "tilt":"close_down",
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Set the SwitchBot Blind Tilt state to CLOSE_UP:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W270160X",
+  "tilt":"close_up",
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Set the SwitchBot Blind Tilt state to a percentage (0-100):
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W270160X",
+  "tilt":55,
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Set the SwitchBot Blind Tilt to Stop:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W270160X",
+  "tilt":"stop",
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Response (assuming success):
+The Switchbot Blind Tilt response :
+```
+{
+  "id":"AA:BB:CC:DD:EE:FF",
+  "tilt":55,
+  "open":90,
+  "direction":"up"
+}
+```
+
+## SwitchBot Curtain (2/3) control (available with HA discovery)
+
+SwitchBot Curtain (2/3) devices are automatically discovered and available as a device in the settings Home Assistant Settings menu. The following commands are supported:
+* Set a percentage
+
+The device can also be controlled over MQTT with a simplified BLE write command.
+
+### Set the SwitchBot Curtain state to OPEN:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W070160X",
+  "position":"open",
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Set the SwitchBot Curtain state to CLOSE:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W070160X",
+  "position":"close",
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Set the SwitchBot Curtain to a percentage (0-100):
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W070160X",
+  "position":55,
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Set the SwitchBot Curtain to Stop:
+```
+mosquitto_pub -t home/OpenMQTTGateway/commands/MQTTtoBT -m '{
+  "model_id":"W070160X",
+  "position":"stop",
+  "id":"AA:BB:CC:DD:EE:FF"
+  }'
+```
+
+### Response (assuming success):
+The Switchbot Curtain response :
+```
+{
+  "id":"AA:BB:CC:DD:EE:FF",
+  "position":55,
 }
 ```
 

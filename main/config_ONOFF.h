@@ -1,7 +1,7 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker 
    Send and receiving command by MQTT
  
    This files enables to set your parameter for the ON OFF actuator
@@ -26,9 +26,11 @@
 #ifndef config_ONOFF_h
 #define config_ONOFF_h
 
+#include "TheengsCommon.h"
+
 extern void setupONOFF();
-extern void MQTTtoONOFF(char* topicOri, char* datacallback);
-extern void MQTTtoONOFF(char* topicOri, JsonObject& RFdata);
+extern void XtoONOFF(const char* topicOri, const char* datacallback);
+extern void XtoONOFF(const char* topicOri, JsonObject& RFdata);
 extern void stateONOFFMeasures();
 /*----------------------------USER PARAMETERS-----------------------------*/
 /*-------------DEFINE YOUR MQTT PARAMETERS BELOW----------------*/
@@ -70,7 +72,7 @@ extern void stateONOFFMeasures();
 #ifndef ACTUATOR_ONOFF_GPIO
 #  ifdef ESP8266
 #    define ACTUATOR_ONOFF_GPIO 15 //12 for sonoff basic relay
-#  elif ESP32
+#  elif defined(ESP32)
 #    define ACTUATOR_ONOFF_GPIO 15
 #  else
 #    define ACTUATOR_ONOFF_GPIO 13

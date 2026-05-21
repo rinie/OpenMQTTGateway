@@ -1,5 +1,5 @@
 /*
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
    Act as a wifi or ethernet gateway between your GridFree SUN-2000G inverter and a MQTT broker.
    Send inverter metrics by MQTT.
@@ -26,10 +26,6 @@
 */
 #ifndef config_GFSunInverter_h
 #define config_GFSunInverter_h
-
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include <GfSun2000.h>
 
 extern void setupGFSunInverter();
 extern void ZgatewayGFSunInverterMQTT();

@@ -1,7 +1,7 @@
 /*
   OpenMQTTGateway  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker
    Send and receiving command by MQTT
 
    This files enables to set your parameter for the radiofrequency gateways (ZgatewayRF and ZgatewayRF2) with RCswitch and newremoteswitch library
@@ -26,10 +26,12 @@
 #ifndef config_RFM69_h
 #define config_RFM69_h
 
+#include "TheengsCommon.h"
+
 extern void setupRFM69();
-extern bool RFM69toMQTT();
-extern void MQTTtoRFM69(char* topicOri, char* datacallback);
-extern void MQTTtoRFM69(char* topicOri, JsonObject& RFdata);
+extern bool RFM69toX();
+extern void XtoRFM69(const char* topicOri, const char* datacallback);
+extern void XtoRFM69(const char* topicOri, JsonObject& RFdata);
 /*----------------------RFM69 topics & parameters -------------------------*/
 // Topic where the message from RFM69 will be published by the gateway,
 // appended with the nodeID of the sender
@@ -43,12 +45,12 @@ extern void MQTTtoRFM69(char* topicOri, JsonObject& RFdata);
 #define defaultRFM69ReceiverId 99
 
 // Default values
-const char PROGMEM ENCRYPTKEY[] = "sampleEncryptKey";
-const char PROGMEM MDNS_NAME[] = "rfm69gw1";
-const char PROGMEM MQTT_BROKER[] = "raspi2";
-const char PROGMEM RFM69AP_NAME[] = "RFM69-AP";
-#define NETWORKID 200 //the same on all nodes that talk to each other
-#define NODEID    10
+#define RFM69_ENCRYPTKEY   "sampleEncryptKey";
+#define RFM69_MDNS_NAME    "rfm69gw1";
+#define RFM69_MQTT_BROKER  "raspi2";
+#define RFM69_RFM69AP_NAME "RFM69-AP";
+#define RFM69_NETWORKID    200 //the same on all nodes that talk to each other
+#define RFM69_NODEID       10
 
 //Match frequency to the hardware version of the radio
 #define FREQUENCY RF69_433MHZ

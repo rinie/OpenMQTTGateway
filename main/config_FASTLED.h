@@ -1,5 +1,5 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
    This files enables you to set your parameters for the FASTLED actuator 
   
@@ -24,10 +24,12 @@
 #ifndef config_FASTLED_h
 #define config_FASTLED_h
 
+#include "TheengsCommon.h"
+
 extern void setupFASTLED();
 extern void FASTLEDLoop();
-extern void MQTTtoFASTLED(char*, char*);
-extern void MQTTtoFASTLED(char*, JsonObject&);
+extern void XtoFASTLED(const char*, const char*);
+extern void XtoFASTLED(const char*, JsonObject&);
 /*-------------------FASTLED topics & parameters----------------------*/
 //FASTLED MQTT Subjects
 #define subjectMQTTtoFASTLED              "/commands/MQTTtoFASTLED"
@@ -82,7 +84,7 @@ extern void MQTTtoFASTLED(char*, JsonObject&);
 #  define FASTLED_ESP8266_D1_GPIO_ORDER
 #  define FASTLED_DATA_GPIO D2 // only D2 works by me
 //#define FASTLED_CLOCK_GPIO 13
-#elif ESP32
+#elif defined(ESP32)
 #  ifndef FASTLED_DATA_GPIO
 #    define FASTLED_DATA_GPIO 16
 #  endif

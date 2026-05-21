@@ -1,7 +1,7 @@
 /*
   OpenMQTTGateway  - ESP8266 or Arduino program for home automation
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker
    Send and receiving command by MQTT
 
    This files enables to set your parameter for the DHT11/22 sensor
@@ -26,11 +26,8 @@
 #ifndef config_WeatherStation_h
 #define config_WeatherStation_h
 
-#include <Arduino.h>
-#include <ArduinoJson.h>
-
 extern void setupWeatherStation();
-extern void ZgatewayWeatherStationtoMQTT();
+extern void ZgatewayWeatherStationtoX();
 /*----------------------------USER PARAMETERS-----------------------------*/
 /*-------------DEFINE YOUR MQTT PARAMETERS BELOW----------------*/
 #define subjectRFtoMQTT "/433toMQTT"
@@ -39,12 +36,8 @@ extern void ZgatewayWeatherStationtoMQTT();
 #ifndef RF_WS_RECEIVER_GPIO
 #  ifdef ESP8266
 #    define RF_WS_RECEIVER_GPIO 0 // D3 on nodemcu // put 4 with rf bridge direct mod
-#  elif ESP32
+#  elif defined(ESP32)
 #    define RF_WS_RECEIVER_GPIO 27 // D27 on DOIT ESP32
-#  elif __AVR_ATmega2560__
-#    define RF_WS_RECEIVER_GPIO 1 //1 = D3 on mega
-#  else
-#    define RF_WS_RECEIVER_GPIO 1 //1 = D3 on arduino
 #  endif
 #endif
 

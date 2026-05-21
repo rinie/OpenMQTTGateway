@@ -1,7 +1,7 @@
 /*  
-  OpenMQTTGateway  - ESP8266 or Arduino program for home automation 
+  Theengs OpenMQTTGateway - We Unite Sensors in One Open-Source Interface
 
-   Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal  and a MQTT broker 
+   Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker 
    Send and receiving command by MQTT
  
    This files enables to set your parameter for the GPIOInput sensor
@@ -27,7 +27,7 @@
 #define config_GPIOInput_h
 
 extern void setupGPIOInput();
-extern void GPIOInputtoMQTT();
+extern void GPIOInputtoX();
 extern void MeasureGPIOInput();
 /*----------------------------USER PARAMETERS-----------------------------*/
 /*-------------DEFINE YOUR MQTT PARAMETERS BELOW----------------*/

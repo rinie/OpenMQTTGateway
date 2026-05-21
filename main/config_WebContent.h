@@ -1,7 +1,7 @@
 /* 
  OpenMQTTGateway - ESP8266 or Arduino program for home automation 
 
- Act as a wifi or ethernet gateway between your 433mhz/infrared IR signal and a MQTT broker 
+ Act as a gateway between your 433mhz, infrared IR, BLE, LoRa signal and one interface like an MQTT broker  
  Send and receiving command by MQTT
  
  This files enables to set your parameter for the DHT11/22 sensor
@@ -41,15 +41,15 @@
 #endif
 // Configuration Menu
 
-#define configure_1 "<p><form action='wi' method='get'><button>Configure WiFi</button></form></p>"
-#define configure_2 "<p><form action='mq' method='get'><button>Configure MQTT</button></form></p>"
+#define configure_1 "<p><form action='wi' method='post'><button>Configure WiFi</button></form></p>"
+#define configure_2 "<p><form action='mq' method='post'><button>Configure MQTT</button></form></p>"
 /*#if defined(ZgatewayCloud)
 #  define configure_3 "<p><form action='cl' method='get'><button>Configure Cloud</button></form></p>"
 #else
 #  define configure_3
 #endif*/
 #ifndef ESPWifiManualSetup
-#  define configure_3 "<p><form action='cg' method='get'><button>Configure Gateway</button></form></p>"
+#  define configure_3 "<p><form action='cg' method='post'><button>Configure Gateway</button></form></p>"
 #else
 #  define configure_3
 #endif
@@ -62,7 +62,11 @@
 #else
 #  define configure_6
 #endif
-#define configure_7
+#ifdef ZgatewayBT
+#  define configure_7 "<p><form action='bl' method='get'><button>Configure BLE</button></form></p>"
+#else
+#  define configure_7
+#endif
 #define configure_8
 
 /*------------------- ----------------------*/
@@ -99,16 +103,41 @@ const char information_body[] = body_header "<style>td {padding: 0px 5px;}</styl
 
 const char upgrade_body[] = body_header "<div id='f1' style='display:block;'><fieldset class=\"set1\"><legend><span><b>Upgrade by Web Server</b></span></legend><form method='get' action='up'><br><b>OTA URL</b><br><input id='o' placeholder=\"OTA_URL\" value=\"%s\"><br><br><button type='submit' class='button bgrn'>Start upgrade</button></form></fieldset><br><br><fieldset class=\"set1\"><legend><span><b>Upgrade to Level</b></span></legend><form method='get' action='up'><p><b>Level</b><br><select id='le'><option value='1'>Latest Release</option><option value='2'>Development</option></select></p><br><button type='submit' class='button bgrn'>Start upgrade</button></form></fieldset></div><div id='f2' style='display:none;text-align:center;'><b>Upload started ...</b></div><div id=but2d style=\"display: block;\"></div><p>" body_footer_main_menu;
 
-const char config_wifi_body[] = body_header "%s<br><div><a href='/wi?scan='><b>Scan for all WiFi Networks</b></a></div><br><fieldset class=\"set1\"><legend><span><b>WiFi Parameters</b></span></legend><form method='get' action='wi'><p><b>WiFi Network</b> () <br><input id='s1' placeholder=\"Type or Select your WiFi Network\" value=\"%s\"></p><p><label><b>WiFi Password</b></label><br><input id='p1' type='password' placeholder=\"Enter your WiFi Password\" ></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
-
-// mqtt server (mh), mqtt port (ml), mqtt username (mu), mqtt password (mp), secure connection (sc), server certificate (msc), topic (mt)
-
-const char config_mqtt_body[] = body_header "<fieldset class=\"set1\"><legend><span><b>MQTT Parameters</b></span></legend><form method='get' action='mq'><p><b>MQTT Server</b><br><input id='mh' placeholder=" MQTT_SERVER " value='%s'></p><p><b>MQTT Port</b><br><input id='ml' placeholder=" MQTT_PORT " value='%s'></p><p><b>MQTT Username</b><br><input id='mu' placeholder=" MQTT_USER " value='%s'></p><p><label><b>MQTT Password</b></label><br><input id='mp' type='password' placeholder=\"Password\" ></p><p><b>MQTT Secure Connection</b><br><input id='sc' type='checkbox' %s></p><p><b>Gateway Name</b><br><input id='h' placeholder=" Gateway_Name " value=\"%s\"></p><p><b>MQTT Base Topic</b><br><input id='mt' placeholder='' value='%s'></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
-
-#ifndef ESPWifiManualSetup
-const char config_gateway_body[] = body_header "<fieldset class=\"set1\"><legend><span><b>Gateway Configuration</b></span></legend><form method='get' action='cg'><p><b>Gateway Password (8 characters min)</b><br><input id='gp' type='password' placeholder=\"********\"  minlength='8'></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
+const char config_wifi_body[] = body_header "%s<br><div><a href='/wi?scan='><b>Scan for all WiFi Networks</b></a></div><br><fieldset class=\"set1\"><legend><span><b>WiFi Parameters</b></span></legend><form method='post' action='wi'><p><b>WiFi Network</b> () <br><input id='s1' name='s1' placeholder=\"Type or Select your WiFi Network\" value=\"%s\"></p><p><label><b>WiFi Password</b></label><br><input id='p1' name='p1' type='password' placeholder=\"Enter your WiFi Password\" ></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
+#ifdef ZmqttDiscovery
+// mqtt server (mh), mqtt port (ml), mqtt username (mu), mqtt password (mp), secure connection (sc), server certificate (msc), mqtt topic (mt), discovery prefix (dp)
+const char config_mqtt_body[] = body_header "<fieldset class=\"set1\"><legend><span><b>MQTT Parameters</b></span></legend><form method='post' action='mq'><p><b>MQTT Server</b><br><input id='mh' name='mh' placeholder=" MQTT_SERVER " value='%s'></p><p><b>MQTT Port</b><br><input id='ml' name='ml' placeholder=" MQTT_PORT " value='%s'></p><p><b>MQTT Username</b><br><input id='mu' name='mu' placeholder=" MQTT_USER " value='%s'></p><p><label><b>MQTT Password</b></label><br><input id='mp' name='mp' type='password' placeholder=\"Password\" ></p><p><b>MQTT Secure Connection</b><br><input id='sc' name='sc' type='checkbox' %s></p><p><b>Gateway Name</b><br><input id='h' name='h' placeholder=" Gateway_Name " value=\"%s\"></p><p><b>MQTT Base Topic</b><br><input id='mt' name='mt' placeholder='' value='%s'></p><p><b>MQTT Discovery Prefix</b><br><input id='dp' name='dp' placeholder='' value='%s'></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
+#else
+// mqtt server (mh), mqtt port (ml), mqtt username (mu), mqtt password (mp), secure connection (sc), server certificate (msc), mqtt topic (mt)
+const char config_mqtt_body[] = body_header "<fieldset class=\"set1\"><legend><span><b>MQTT Parameters</b></span></legend><form method='post' action='mq'><p><b>MQTT Server</b><br><input id='mh' name='mh' placeholder=" MQTT_SERVER " value='%s'></p><p><b>MQTT Port</b><br><input id='ml' name='ml' placeholder=" MQTT_PORT " value='%s'></p><p><b>MQTT Username</b><br><input id='mu' name='mu' placeholder=" MQTT_USER " value='%s'></p><p><label><b>MQTT Password</b></label><br><input id='mp' name='mp' type='password' placeholder=\"Password\" ></p><p><b>MQTT Secure Connection</b><br><input id='sc' name='sc' type='checkbox' %s></p><p><b>Gateway Name</b><br><input id='h' name='h' placeholder=" Gateway_Name " value=\"%s\"></p><p><b>MQTT Base Topic</b><br><input id='mt' name='mt' placeholder='' value='%s'></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
 #endif
-const char config_logging_body[] = body_header "<fieldset class=\"set1\"><legend><span><b>OpenMQTTGateway Logging</b></span></legend><form method='get' action='lo'><p><b>Log Level</b><br><select id='lo'><option %s value='0'>Silent</option><option %s value='1'>Fatal</option><option %s value='2'>Error</option><option %s value='3'>Warning</option><option %s value='4'>Notice</option><option %s value='5'>Trace</option><option %s value='6'>Verbose</option></select></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
+#ifndef ESPWifiManualSetup
+const char config_gateway_body[] = body_header
+    "<fieldset class=\"set1\"><legend><span><b>Gateway Configuration</b></span></legend>"
+    "<form method='post' action='cg'>"
+    "<p><b>Gateway Password (8 characters min)</b><br>"
+    "<input id='gp' name='gp' type='password' placeholder=\"********\" minlength='8'></p>"
+#  ifdef ZmqttDiscovery
+    "<p><label><input id='dc' name='dc' type='checkbox' %s> MQTT Discovery</label></p>"
+#  endif
+    "<br><button name='save' type='submit' class='button bgrn'>Save</button>"
+    "</form></fieldset>" body_footer_config_menu;
+#endif
+const char config_logging_body[] = body_header
+    "<fieldset class=\"set1\"><legend><span><b>OpenMQTTGateway Logging</b></span></legend><form method='get' action='lo'><p><b>Log Level</b><br><select id='lo'><option %s value='0'>Silent</option><option %s value='1'>Fatal</option><option %s value='2'>Error</option>"
+#if LOG_LEVEL >= LOG_LEVEL_WARNING
+    "<option %s value='3'>Warning</option>"
+#endif
+#if LOG_LEVEL >= LOG_LEVEL_NOTICE
+    "<option %s value='4'>Notice</option>"
+#endif
+#if LOG_LEVEL >= LOG_LEVEL_TRACE
+    "<option %s value='5'>Trace</option>"
+#endif
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
+    "<option %s value='6'>Verbose</option>"
+#endif
+    "</select></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
 
 const char config_webui_body[] = body_header "<fieldset class=\"set1\"><legend><span><b>Configure WebUI</b></span></legend><form method='get' action='wu'><p><b>Display Metric</b><br><input id='dm' type='checkbox' %s></p><p><b>Secure WebUI</b><br><input id='sw' type='checkbox' %s></p><br><button name='save' type='submit' class='button bgrn'>Save</button></form></fieldset>" body_footer_config_menu;
 
@@ -216,6 +245,68 @@ const char config_lora_body[] = body_header
     "<br><button name='save' type='submit' class='button bgrn'>Save</button>"
     "</form>"
     "</fieldset>" body_footer_config_menu;
+
+#ifdef ZgatewayBT
+// BLE config page split into parts to fit within WEB_TEMPLATE_BUFFER_MAX_SIZE
+
+// Part 1: Header + Scan settings (body_header %s=modules, %s=gateway_name, then: %s=enabled, %s=adaptivescan, %lu=interval, %lu=intervalacts, %lu=scanduration, %s=forcepscn, %s=bleconnect, %d=minrssi)
+const char config_ble_body_scan[] = body_header
+    "<fieldset class=\"set1\"><legend><span><b>Configure BLE</b></span></legend>"
+    "<form method='post' action='bl'>"
+    "<p><b>Scan Settings</b></p>"
+    "<p><label><input id='en' name='en' type='checkbox' %s> Enable BLE</label></p>"
+    "<p><label><input id='as' name='as' type='checkbox' %s> Adaptive Scan</label></p>"
+    "<p><b>Scan Interval (ms)</b><br><input id='bi' name='bi' type='number' min='0' value='%lu'></p>"
+    "<p><b>Active Scan Interval (ms)</b><br><input id='ai' name='ai' type='number' min='0' value='%lu'></p>"
+    "<p><b>Scan Duration (ms)</b><br><input id='sd' name='sd' type='number' min='0' value='%lu'></p>"
+    "<p><label><input id='fp' name='fp' type='checkbox' %s> Force Passive Scan</label></p>"
+    "<p><label><input id='bc' name='bc' type='checkbox' %s> BLE Connect</label></p>"
+    "<p><b>Min RSSI</b><br><input id='mr' name='mr' type='number' max='0' value='%d'></p>";
+
+// Part 2: Publish settings (%s=onlysensors, %s=randommacs, %s=pubadvdata, %s=pubuuid4topic, %s=filterConnectable, %s=ignoreWBlist)
+const char config_ble_body_publish[] =
+    "<hr><p><b>Publish Settings</b></p>"
+    "<p><label><input id='os' name='os' type='checkbox' %s> Only Sensors</label></p>"
+    "<p><label><input id='rm' name='rm' type='checkbox' %s> Random MACs</label></p>"
+    "<p><label><input id='pa' name='pa' type='checkbox' %s> Publish Adv Data</label></p>"
+    "<p><label><input id='ut' name='ut' type='checkbox' %s> UUID as Topic</label></p>"
+    "<p><label><input id='fc' name='fc' type='checkbox' %s> Filter Connectable</label></p>"
+    "<p><label><input id='iw' name='iw' type='checkbox' %s> Ignore White/Blacklist</label></p>";
+
+// Part 3: Presence settings (%s=hasspresence, %s=presuseuuid, %s=prestopic, %lu=presenceawaytimer, %lu=movingtimer)
+const char config_ble_body_presence[] =
+    "<hr><p><b>Presence Settings</b></p>"
+    "<p><label><input id='hp' name='hp' type='checkbox' %s> HA Presence</label></p>"
+    "<p><label><input id='pu' name='pu' type='checkbox' %s> Use UUID for Presence</label></p>"
+    "<p><b>Presence Topic</b><br><input id='pt' name='pt' value='%s'></p>"
+    "<p><b>Away Timer (ms)</b><br><input id='at' name='at' type='number' min='0' value='%lu'></p>"
+    "<p><b>Moving Timer (ms)</b><br><input id='mo' name='mo' type='number' min='0' value='%lu'></p>";
+
+// Part 4: External decoder settings (%s=extDecoderEnable, %s=extDecoderTopic, %lu=intervalcnct)
+const char config_ble_body_decoder[] =
+    "<hr><p><b>External Decoder</b></p>"
+    "<p><label><input id='ed' name='ed' type='checkbox' %s> Enable Ext Decoder</label></p>"
+    "<p><b>Ext Decoder Topic</b><br><input id='et' name='et' value='%s'></p>"
+    "<p><b>Connect Interval (ms)</b><br><input id='ci' name='ci' type='number' min='0' value='%lu'></p>";
+
+#  if BLEDecryptor
+// Part 5: Encryption settings (%s=ble_aes, %s=ble_aes_keys)
+const char config_ble_body_encrypt[] =
+    "<hr><p><b>Encryption</b></p>"
+    "<p><b>BLE AES Default Key (32 char hex)</b></p>"
+    "<input id='bk' name='bk' minlength='32' maxlength='32' placeholder='00112233445566778899001122334455' value='%s'>"
+    "<hr><p><b>BLE Key Pairs</b></p>"
+    "<p>MacAddress:AESKey with space separator</p>"
+    "<p><textarea id='kp' name='kp' placeholder='A4C138012345:00112233445566778899001122334455' rows='3' cols='46'>%s</textarea></p>";
+#  endif
+
+// Part 6: Save button + footer
+const char config_ble_body_footer[] =
+    "<br><button id='s' name='save' type='submit' class='button bgrn'>Save</button>"
+    "</form></fieldset>" body_footer_config_menu;
+
+const char ble_script[] = "";
+#endif
 
 const char footer[] = "<div style='text-align:right;font-size:11px;'><hr/><a href='https://community.openmqttgateway.com' target='_blank' style='color:#aaa;'>%s</a></div></div></body></html>";
 
