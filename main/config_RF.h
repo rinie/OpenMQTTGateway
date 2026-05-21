@@ -54,6 +54,7 @@ extern void enablePilightReceive();
 extern void RTL_433Loop();
 extern void setupRTL_433();
 extern void enableRTLreceive();
+extern void XtoRTL_433(const char* topicOri, JsonObject& data);
 #ifdef RADIOLIBSX127X && (defined(ZgatewayRF) || defined(ZgatewayPilight) || defined(ZgatewayRF2))
 extern void enableRTLreceivePg(decodePulseGapDurationCallback pgdc);
 #endif
@@ -187,8 +188,9 @@ extern RFConfiguration iRFConfig;
 
 /*-------------------RTL_433 topics & parameters----------------------*/
 //433Mhz RTL_433 MQTT Subjects and keys
-#define subjectMQTTtoRFset   "/commands/MQTTtoRF/config"
-#define subjectRTL_433toMQTT "/RTL_433toMQTT"
+#define subjectMQTTtoRFset    "/commands/MQTTtoRF/config"
+#define subjectMQTTtoRTL_433  "/commands/MQTTtoRTL_433"
+#define subjectRTL_433toMQTT  "/RTL_433toMQTT"
 
 /*-------------------RF frequency----------------------*/
 //Match frequency to the hardware version of the radio used.

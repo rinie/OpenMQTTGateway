@@ -374,4 +374,119 @@ extern int getOOKThresh() {
 }
 #  endif
 
+/*
+ * Build a NewKAKU (KAKU-AC) pulse array into buf[].
+ * address: 26-bit device address
+ * unit:    4-bit channel (0-15)
+ * command: 0=off, 1=on, 2=dim
+ * group:   true → send group command (address broadcast)
+ * dimLevel:4-bit dim value (0-15), only used when command==2
+ * period:  base period T in µs (typical 260)
+ * Returns number of entries written.
+ *
+ * Encoding (LSB first for address and unit):
+ *   Start:  HIGH×T, LOW×10.5T
+ *   Bit 0:  HIGH×T, LOW×T,  HIGH×T, LOW×5T
+ *   Bit 1:  HIGH×T, LOW×5T, HIGH×T, LOW×T
+ *   Dim:    HIGH×T, LOW×T,  HIGH×T, LOW×T   (on/off indicator for dim cmd)
+ *   Stop:   HIGH×T, LOW×40T
+ */
+static uint16_t buildKakuPulses(uint32_t* buf, uint32_t address, uint8_t unit,
+                                 uint8_t command, bool group, uint8_t dimLevel,
+                                 uint16_t period) {
+  uint16_t pos = 0;
+
+  auto addBit = [&](bool one) {
+    if (one) {
+      buf[pos++] = period;
+      buf[pos++] = period * 5;
+      buf[pos++] = period;
+      buf[pos++] = period;
+    } else {
+      buf[pos++] = period;
+      buf[pos++] = period;
+      buf[pos++] = period;
+      buf[pos++] = period * 5;
+    }
+  };
+
+  // Start pulse: T HIGH, 10.5T LOW
+  buf[pos++] = period;
+  buf[pos++] = period * 10 + period / 2;
+
+  // 26 address bits, LSB first
+  for (uint8_t i = 0; i < 26; i++) {
+    addBit(address & 1);
+    address >>= 1;
+  }
+
+  // Group bit
+  addBit(group);
+
+  // On/off indicator or dim marker
+  if (command == 2) {
+    // Dim indicator: [T, T, T, T]
+    buf[pos++] = period;
+    buf[pos++] = period;
+    buf[pos++] = period;
+    buf[pos++] = period;
+  } else {
+    addBit(command != 0); // 1 = on, 0 = off
+  }
+
+  // 4 unit bits, LSB first
+  for (uint8_t i = 0; i < 4; i++) {
+    addBit(unit & 1);
+    unit >>= 1;
+  }
+
+  // 4 dim level bits, LSB first (dim command only)
+  if (command == 2) {
+    for (uint8_t i = 0; i < 4; i++) {
+      addBit(dimLevel & 1);
+      dimLevel >>= 1;
+    }
+  }
+
+  // Stop pulse: T HIGH, 40T LOW
+  buf[pos++] = period;
+  buf[pos++] = period * 40;
+
+  return pos;
+}
+
+void XtoRTL_433(const char* topicOri, JsonObject& data) {
+  if (!cmpToMainTopic(topicOri, subjectMQTTtoRTL_433)) return;
+
+  THEENGS_LOG_TRACE(F("MQTTtoRTL_433" CR));
+
+  unsigned long address = data["address"] | 8233378UL;
+  int unit              = data["unit"]    | 0;
+  int command           = data["command"] | 1; // 0=off, 1=on, 2=dim
+  bool group            = data["group"]   | false;
+  int dimLevel          = data["dim"]     | 0;
+  int period            = data["period"]  | 260;
+  int repeat            = data["repeat"]  | 2;
+
+  // 160 entries covers on/off (132) and dim (148) with headroom
+  uint32_t pulses[160];
+  uint16_t count = buildKakuPulses(pulses,
+                                   (uint32_t)address,
+                                   (uint8_t)(unit & 0x0F),
+                                   (uint8_t)command,
+                                   group,
+                                   (uint8_t)(dimLevel & 0x0F),
+                                   (uint16_t)period);
+
+  for (int r = 0; r < repeat; r++) {
+    rtl_433.sendPulses(pulses, count);
+  }
+
+  data["origin"] = subjectRTL_433toMQTT;
+  enqueueJsonObject(data);
+
+  THEENGS_LOG_NOTICE(F("MQTTtoRTL_433 sent address:%lu unit:%d cmd:%d" CR),
+                     address, unit, command);
+}
+
 #endif
