@@ -455,6 +455,9 @@ static uint16_t buildKakuPulses(uint32_t* buf, uint32_t address, uint8_t unit,
   return pos;
 }
 
+void disableCurrentReceiver();
+void enableActiveReceiver();
+
 void XtoRTL_433(const char* topicOri, JsonObject& data) {
   if (!cmpToMainTopic(topicOri, subjectMQTTtoRTL_433)) return;
 
@@ -478,9 +481,13 @@ void XtoRTL_433(const char* topicOri, JsonObject& data) {
                                    (uint8_t)(dimLevel & 0x0F),
                                    (uint16_t)period);
 
+  disableCurrentReceiver();  // stop whichever receiver is active (RF/RF2/Pilight/RTL)
+
   for (int r = 0; r < repeat; r++) {
     rtl_433.sendPulses(pulses, count);
   }
+
+  enableActiveReceiver();    // restore the previously active receiver
 
   data["origin"] = subjectRTL_433toMQTT;
   enqueueJsonObject(data);
