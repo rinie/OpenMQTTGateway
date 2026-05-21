@@ -3040,6 +3040,9 @@ void receivingDATA(const char* topicOri, const char* datacallback) {
 #  ifdef ZgatewayRF2
     XtoRF2(strTopicOri.c_str(), jsondata);
 #  endif
+#  ifdef ZgatewayRTL_433
+    XtoRTL_433(strTopicOri.c_str(), jsondata);
+#  endif
 #  ifdef Zgateway2G
     Xto2G(strTopicOri.c_str(), jsondata);
 #  endif

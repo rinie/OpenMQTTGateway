@@ -131,8 +131,11 @@ void RF2toX() {
     enqueueJsonObject(RF2data);
   }
 }
-
+#ifdef RADIOLIBSX127X
+void rf2Callback(unsigned int period, unsigned long address, unsigned long groupBit, unsigned long unit, unsigned long switchType, boolean dimLevelPresent, byte dimLevel) {
+#else
 void rf2Callback(unsigned int period, unsigned long address, unsigned long groupBit, unsigned long unit, unsigned long switchType) {
+#endif
   rf2rd.period = period;
   rf2rd.address = address;
   rf2rd.groupBit = groupBit;
@@ -154,6 +157,7 @@ void XtoRF2(const char* topicOri, const char* datacallback) {
   ELECHOUSE_cc1101.SetTx(txFrequency);
   THEENGS_LOG_NOTICE(F("[RF] Transmit frequency: %F" CR), txFrequency);
 #    endif
+
 
   // RF DATA ANALYSIS
   //We look into the subject to see if a special RF protocol is defined
@@ -327,19 +331,33 @@ void XtoRF2(const char* topicOri, JsonObject& RF2data) { // json object decoding
 
 void disableRF2Receive() {
   THEENGS_LOG_TRACE(F("disableRF2Receive" CR));
+#ifdef RADIOLIBSX127X
+  disableRTLreceive();
+#endif
   NewRemoteReceiver::disable();
 }
+
+#ifdef RADIOLIBSX127X
+int rf2DecodePulseGapDuration(const unsigned int duration) {
+	return NewRemoteReceiver::decodePulseGapDuration(duration);
+}
+#endif;
 
 void enableRF2Receive() {
   THEENGS_LOG_TRACE(F("enableRF2Receive" CR));
   NewRemoteReceiver::init(RF_RECEIVER_GPIO, 2, rf2Callback);
 
+#ifndef RADIOLIBSX127X
   THEENGS_LOG_NOTICE(F("RF_EMITTER_GPIO: %d " CR), RF_EMITTER_GPIO);
   THEENGS_LOG_NOTICE(F("RF_RECEIVER_GPIO: %d " CR), RF_RECEIVER_GPIO);
+#endif
   THEENGS_LOG_TRACE(F("gatewayRF2 command topic: %s%s%s" CR), mqtt_topic, gateway_name, subjectMQTTtoRF2);
   pinMode(RF_EMITTER_GPIO, OUTPUT);
   digitalWrite(RF_EMITTER_GPIO, LOW);
+#ifdef RADIOLIBSX127X
+  THEENGS_LOG_NOTICE(F("Switching to RF2 RTL_433: %F" CR), iRFConfig.getFrequency());
+  enableRTLreceivePg(rf2DecodePulseGapDuration);
+#endif
   THEENGS_LOG_TRACE(F("gatewayRF2 setup done " CR));
 }
-
 #endif
