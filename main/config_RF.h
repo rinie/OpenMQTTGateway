@@ -228,6 +228,22 @@ extern RFConfiguration iRFConfig;
 #endif
 
 /*-------------------PIN DEFINITIONS----------------------*/
+// On SX127x boards the OOK demodulated stream is output on DIO2. Route all OOK
+// protocol libraries (RCSwitch, ESPiLight, NewRemoteReceiver) to that pin so they
+// work without a separate receiver module. RF_MODULE_DIO2 comes from a build flag
+// (-DRF_MODULE_DIO2=N) or the board variant's DIO2 constant.
+#if defined(RF_SX1276) || defined(RF_SX1278) || defined(ZradioSX127x)
+#  if defined(RF_MODULE_DIO2)
+#    ifndef RF_RECEIVER_GPIO
+#      define RF_RECEIVER_GPIO RF_MODULE_DIO2
+#    endif
+#  elif defined(DIO2)
+#    ifndef RF_RECEIVER_GPIO
+#      define RF_RECEIVER_GPIO DIO2
+#    endif
+#  endif
+#endif
+
 #ifndef RF_RECEIVER_GPIO
 #  ifdef ESP8266
 #    define RF_RECEIVER_GPIO 0 // D3 on nodemcu // put 4 with rf bridge direct mod

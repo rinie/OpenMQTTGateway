@@ -1481,6 +1481,10 @@ void setup() {
 #endif
 
   delay(1500);
+#ifdef ZgatewayRTL_433
+  setupRTL_433();
+  modules.add(ZgatewayRTL_433);
+#endif
 #if defined(ZgatewayRF) || defined(ZgatewayPilight) || defined(ZgatewayRTL_433) || defined(ZgatewayRF2) || defined(ZactuatorSomfy)
   setupCommonRF();
 #endif
@@ -1611,10 +1615,6 @@ void setup() {
 #endif
 #ifdef ZsensorSHTC3
   setupSHTC3();
-#endif
-#ifdef ZgatewayRTL_433
-  setupRTL_433();
-  modules.add(ZgatewayRTL_433);
 #endif
   THEENGS_LOG_TRACE(F("mqtt_max_payload_size: %d" CR), mqtt_max_payload_size);
   SYSConfig.offline ? THEENGS_LOG_NOTICE(F("Offline enabled" CR)) : THEENGS_LOG_NOTICE(F("Offline disabled" CR));

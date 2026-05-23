@@ -188,7 +188,11 @@ void enableActiveReceiver() {
   switch (iRFConfig.getActiveReceiver()) {
 #  ifdef ZgatewayPilight
     case ACTIVE_PILIGHT:
+#    if (defined(RF_SX1276) || defined(RF_SX1278)) && defined(ZgatewayRTL_433)
+      rtl_433.initReceiver(RF_MODULE_RECEIVER_GPIO, iRFConfig.getFrequency());
+#    else
       initCC1101();
+#    endif
       enablePilightReceive();
       currentReceiver = ACTIVE_PILIGHT;
       isDriverEnabled = true;
@@ -196,7 +200,11 @@ void enableActiveReceiver() {
 #  endif
 #  ifdef ZgatewayRF
     case ACTIVE_RF:
+#    if (defined(RF_SX1276) || defined(RF_SX1278)) && defined(ZgatewayRTL_433)
+      rtl_433.initReceiver(RF_MODULE_RECEIVER_GPIO, iRFConfig.getFrequency());
+#    else
       initCC1101();
+#    endif
       enableRFReceive(iRFConfig.getFrequency(), RF_RECEIVER_GPIO, RF_EMITTER_GPIO);
       currentReceiver = ACTIVE_RF;
       isDriverEnabled = true;
@@ -212,7 +220,11 @@ void enableActiveReceiver() {
 #  endif
 #  ifdef ZgatewayRF2
     case ACTIVE_RF2:
+#    if (defined(RF_SX1276) || defined(RF_SX1278)) && defined(ZgatewayRTL_433)
+      rtl_433.initReceiver(RF_MODULE_RECEIVER_GPIO, iRFConfig.getFrequency());
+#    else
       initCC1101();
+#    endif
       enableRF2Receive();
       currentReceiver = ACTIVE_RF2;
       isDriverEnabled = true;
