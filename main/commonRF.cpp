@@ -235,7 +235,7 @@ String stateRFMeasures() {
   iRFConfig.toJson(RFdata);
 
   // load the current state
-#  if defined(ZradioCC1101) || defined(ZradioSX127x)
+#  if defined(ZradioCC1101) || defined(RADIOLIBSX127X)
   if (iRFConfig.getActiveReceiver() == ACTIVE_RTL) {
 #    ifdef ZgatewayRTL_433
     RFdata["rssithreshold"] = (int)getRTLrssiThreshold();
@@ -246,7 +246,7 @@ String stateRFMeasures() {
     extern TaskHandle_t rtl_433_DecoderHandle;
     RFdata["rtl433_stack"] = (int)uxTaskGetStackHighWaterMark(rtl_433_DecoderHandle);
 #    endif
-#    ifdef ZradioSX127x
+#    if defined(RF_SX1276) || defined(RF_SX1278)
     RFdata["ookthreshold"] = (int)getOOKThresh();
 #    endif
   }

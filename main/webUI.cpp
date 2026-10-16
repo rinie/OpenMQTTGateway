@@ -1313,17 +1313,21 @@ void handleLA() {
 #    include "rf/RFConfiguration.h"
 std::map<int, String> activeReceiverOptions = {
     {0, "Inactive"},
-#    if defined(ZgatewayPilight) && !defined(ZradioSX127x)
+#    if defined(ZgatewayPilight) /*&& !defined(ZradioSX127x) */
     {1, "PiLight"},
 #    endif
-#    if defined(ZgatewayRF) && !defined(ZradioSX127x)
+#    if defined(ZgatewayRF) /* && !defined(ZradioSX127x) */
     {2, "RF"},
 #    endif
 #    ifdef ZgatewayRTL_433
     {3, "RTL_433"},
 #    endif
-#    if defined(ZgatewayRF2) && !defined(ZradioSX127x)
+#    if defined(ZgatewayRF2) /* && !defined(ZradioSX127x) */
+#ifdef RADIOLIBSX127X
+    {4, "RF2 (on RTL_433)"}
+#else
     {4, "RF2 (restart required)"}
+#endif
 #    endif
 };
 

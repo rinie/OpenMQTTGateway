@@ -204,6 +204,9 @@ void RFtoX() {
 #  ifdef ZradioCC1101 // set Receive off and Transmitt on
     RFdata["frequency"] = iRFConfig.getFrequency();
 #  endif
+#  ifdef RADIOLIBSX127X
+    RFdata["frequency"] = iRFConfig.getFrequency();
+#  endif
 
     mySwitch.resetAvailable();
 
@@ -257,6 +260,11 @@ void XtoRF(const char* topicOri, const char* datacallback) {
   ELECHOUSE_cc1101.SetTx(iRFConfig.getFrequency());
   THEENGS_LOG_NOTICE(F("[RF] Transmit frequency: %F" CR), iRFConfig.getFrequency());
 #    endif
+#    ifdef RADIOLIBSX127X
+  disableCurrentReceiver();
+  enableRTLtransmitter();
+  THEENGS_LOG_NOTICE(F("[RF] Transmit ZradioSX127x: %F" CR), iRFConfig.getFrequency());
+#    endif
   mySwitch.disableReceive();
   mySwitch.enableTransmit(RF_EMITTER_GPIO);
   uint64_t data = strtoull(datacallback, NULL, 10); // we will not be able to pass values > 4294967295 on Arduino boards
@@ -309,6 +317,9 @@ void XtoRF(const char* topicOri, const char* datacallback) {
   mySwitch.disableTransmit();
   mySwitch.enableReceive(RF_RECEIVER_GPIO);
 #    endif
+#    ifdef RADIOLIBSX127X
+  enableRFReceive();
+#    endif
 }
 #  endif
 
@@ -345,6 +356,10 @@ void XtoRF(const char* topicOri, JsonObject& RFdata) {
       int valueRPT = RFdata["repeat"] | RF_EMITTER_REPEAT;
       THEENGS_LOG_NOTICE(F("[RF] Protocol:%d, Pulse Lgth: %d, Bits nb: %d" CR), valuePRT, valuePLSL, valueBITS);
       disableCurrentReceiver();
+#    ifdef RADIOLIBSX127X
+      enableRTLtransmitter();
+      THEENGS_LOG_NOTICE(F("[RF] json Transmit ZradioSX127x: %F" CR), iRFConfig.getFrequency());
+#    endif
 #    ifdef ZradioCC1101
       initCC1101();
       int txPower = RFdata["txpower"] | RF_CC1101_TXPOWER;
@@ -382,8 +397,17 @@ void XtoRF(const char* topicOri, JsonObject& RFdata) {
  */
 void disableRFReceive() {
   THEENGS_LOG_TRACE(F("[RF] disable RFReceive %d" CR), RF_RECEIVER_GPIO);
+#ifdef RADIOLIBSX127X
+  disableRTLreceive();
+#endif
   mySwitch.disableReceive();
 }
+
+#ifdef RADIOLIBSX127X
+int rfDecodePulseGapDuration(const unsigned int duration) {
+  return mySwitch.decodePulseGapDuration(duration);
+}
+#endif
 
 /**
  * @brief Enables the RF receiver and optionally the RF transmitter.
@@ -411,6 +435,9 @@ void enableRFReceive(
 #  endif
 
   mySwitch.setRepeatTransmit(RF_EMITTER_REPEAT);
+#  ifndef RADIOLIBSX127X
+  enableRTLreceivePg(rfDecodePulseGapDuration);
+#  endif
   mySwitch.enableReceive(rfReceiverGPIO);
 
   THEENGS_LOG_TRACE(F("[RF] Setup command topic: %s%s%s\n Setup done" CR), (const char*)mqtt_topic, (const char*)gateway_name, (const char*)subjectMQTTtoRF);

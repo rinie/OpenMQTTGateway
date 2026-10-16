@@ -1,0 +1,90 @@
+https://www.thethingsnetwork.org/forum/t/big-esp32-sx127x-topic-part-3/18436
+
+heltec_wifi_lora_32 868 not v2
+ttgo-lora32-v21 433
+
+Assume ttgo-lora
+
+TTGO LoRa32 V2.1.6 (aka T3 V1.6, aka LoRa32 V2.1 release 1.6):
+Is labeled T3 V1.6, 20180506 on the PCB.
+Similar to V2.1.5 with changes and improvements:
+Changes in pins / GPIOs. Uses GPIO23 for LoRa RST. Uses GPIO25 for onboard LED. Uses GPIO35 as ADC for battery voltage measurement (uses 100k/100k divider).
+
+heltec_wifi_lora_32 868 not v2
+
+static const uint8_t SDA = 21;
+static const uint8_t SCL = 22;
+
+static const uint8_t SS    = 18;
+static const uint8_t MOSI  = 27;
+static const uint8_t MISO  = 19;
+static const uint8_t SCK   = 5;
+
+static const uint8_t LED  = 25;
+static const uint8_t RST_OLED = 16;
+static const uint8_t SCL_OLED = 15;
+static const uint8_t SDA_OLED = 4;
+static const uint8_t RST_LoRa = 14;
+static const uint8_t DIO0 = 26; // or LORA_IRQ
+static const uint8_t DIO1 = 33;
+static const uint8_t DIO2 = 32;
+
+
+ttgo-lora32-v21 433 or v21new?
+
+// I2C OLED Display works with SSD1306 driver
+#define OLED_SDA    21
+#define OLED_SCL    22
+#define OLED_RST    16
+
+// SPI LoRa Radio
+#define LORA_SCK    5   // GPIO5 - SX1276 SCK
+#define LORA_MISO   19  // GPIO19 - SX1276 MISO
+#define LORA_MOSI   27  // GPIO27 - SX1276 MOSI
+#define LORA_CS     18  // GPIO18 - SX1276 CS
+#define LORA_RST    12  // GPIO14 - SX1276 RST
+#define LORA_IRQ    26  // GPIO26 - SX1276 IRQ (interrupt request) aka DIO0
+#define LORA_D1     33  // GPIO33 - SX1276 IO1 (for LMIC Arduino library)
+#define LORA_D2     32 // GPIO32 - SX1276 IO2
+static const uint8_t LED_BUILTIN = 25  ;
+
+
+ttgo-lora, same as heltec_wifi_lora_32? but 433
+ttgo-lora32-v1 should map, LED is different
+// I2C OLED Display works with SSD1306 driver
+#define OLED_SDA 4
+#define OLED_SCL 15
+#define OLED_RST 16
+
+// SPI LoRa Radio
+#define LORA_SCK 5        // GPIO5 - SX1276 SCK
+#define LORA_MISO 19     // GPIO19 - SX1276 MISO
+#define LORA_MOSI 27    // GPIO27 - SX1276 MOSI
+#define LORA_CS 18     // GPIO18 - SX1276 CS
+#define LORA_RST 14   // GPIO14 - SX1276 RST
+#define LORA_IRQ 26  // GPIO26 - SX1276 IRQ (interrupt request)
+
+static const uint8_t LED_BUILTIN = 2;
+
+
+https://github.com/espruino/EspruinoDocs/blob/master/devices/SX127x.md
+Note about Hope RF RFM95W and TTGO LoRa32 modules and transmit power
+To transmit with these modules you have to pass forcePaBoost: true in the TX configuration. The manufacturer didn't connect the low-power "RFO" pins to the antenna output. Therefore the lowest output power available with these modules is +2dBm. If the power is outside the allowed range, the library throws SX127x-PA_BOOST_PWR_ERR.
+
+Reference
+
+# flush FIFO
+		status = self.read_reg(RegIrqFlags2)
+		while (status & 0x40 == 0x40):
+			self.read_reg(RegFifo)
+			status = self.read_reg(RegIrqFlags2)
+		if var_pack_format:
+			data.insert(0, len(data))
+			self._set_reg(RegPacketConfig1, 1<<7, 1<<7)
+		else:
+			self._set_reg(RegPacketConfig1, 1<<7, 0<<7)
+			self._write_reg(RegPayloadLength, 0 if len(data) > 255 else len(data))
+		self.__set_dio_mapping(0, DIO0_PM_SENT) # DIO0 -> PacketSent
+
+def write_fifo_burst(self, data):
+		self.__spi.xfer3([0x80] + list(data))
